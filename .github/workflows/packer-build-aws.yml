@@ -71,8 +71,6 @@ jobs:
         run: |
           sudo apt-get install -y jq
           FULL_ID=$(jq -r '.builds[-1].artifact_id' manifest.json)
-          echo "ami_id=$(echo $FULL_ID | cut -d':' -f2)"
-          echo "region=$(echo $FULL_ID | cut -d':' -f1)"
           echo "ami_id=$(echo $FULL_ID | cut -d':' -f2)" >> $GITHUB_OUTPUT
           echo "region=$(echo $FULL_ID | cut -d':' -f1)" >> $GITHUB_OUTPUT
       
