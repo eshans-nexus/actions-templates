@@ -38,7 +38,7 @@ jobs:
           echo "Checking if $AMI_ID is public..."
           IS_PUBLIC=$(aws ec2 describe-images --image-ids $AMI_ID --region $REGION --query 'Images[0].Public' --output text)
           
-          if [ "$IS_PUBLIC" == "true" ]; then
+          if [ "$IS_PUBLIC" == "True" ]; then
             echo "AMI is Public. Copying to private temporary AMI for EBS scanning..."
             NEW_AMI=$(aws ec2 copy-image --source-image-id $AMI_ID --source-region $REGION --name "scan-temp-${{ github.run_id }}" --output text)
             
