@@ -9,9 +9,11 @@ on:
       packer_dir:
         default: './packer/v1'
         type: string
-      template_path_pattern:
-        description: "Path pattern for the template. Use %s for version."
-        default: "./releases/%s/matlab.template.json"
+      template_dir_pattern:
+        default: './releases/{0}'
+        type: string
+      template_file_name:
+        default: 'aws-matlab-template.json'
         type: string
       test_mode:
         default: false
@@ -41,7 +43,7 @@ jobs:
     name: Patch template to use built AMI
     uses: ./.github/workflows/patch-template.yml
     with:
-      template_path: ${{ format(inputs.template_path_pattern, inputs.matlab_version) }}
+      template_path: ${{ format('{0}/{1}', format(inputs.template_dir_pattern, inputs.matlab_version), inputs.template_file_name) }}
       ami_id: ${{ needs.build.outputs.ami_id }}
 
   attest:
