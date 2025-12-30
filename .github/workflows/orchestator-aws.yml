@@ -1,0 +1,65 @@
+name: 'Orchestrator: AWS Supplementary Build Pipeline'
+
+on:
+  workflow_call:
+    inputs:
+      matlab_version:
+        required: true
+        type: string
+      packer_dir:
+        default: './packer/v1'
+        type: string
+      template_path_pattern:
+        description: "Path pattern for the template. Use %s for version."
+        default: "./releases/%s/matlab.template.json"
+        type: string
+      test_mode:
+        default: false
+        type: boolean
+
+jobs:
+  build:
+    name: Run packer build
+    uses: eshans-nexus/actions-templates/.github/workflows/packer-build-aws.yml@main
+    with:
+      matlab_version: ${{ inputs.matlab_version }}
+      packer_dir: ${{ inputs.packer_dir }}
+      test_mode: ${{ inputs.test_mode }}
+    secrets: inherit
+
+  scan:
+    needs: build
+    name: Run trivy security scan
+    uses: eshans-nexus/actions-templates/.github/workflows/trivy-scan-aws.yml@main
+    with:
+      ami_id: ${{ needs.build.outputs.ami_id }}
+      region: ${{ needs.build.outputs.region }}
+    secrets: inherit
+
+  patch:
+    needs: build
+    name: Patch template to use built AMI
+    uses: eshans-nexus/actions-templates/.github/workflows/patch-template.yml@main
+    with:
+      template_path: ${{ format(inputs.template_path_pattern, inputs.matlab_version) }}
+      ami_id: ${{ needs.build.outputs.ami_id }}
+
+  attest:
+    needs: [build, patch]
+    name: Attest builds to ensure authenticity
+    uses: eshans-nexus/actions-templates/.github/workflows/slsa-attest.yml@main
+    with:
+      template_artifact: 'patched-template'
+      packer_artifact: 'packer-artifacts'
+
+  release:
+    needs: [attest, patch, scan, build]
+    if: inputs.test_mode == false
+    name: Create GitHub release
+    uses: eshans-nexus/actions-templates/.github/workflows/gh-release.yml@main
+    with:
+      version: ${{ inputs.matlab_version }}
+      prerelease: true
+      template_artifact: 'patched-template'
+      packer_artifact: 'packer-artifacts'
+      scan_artifact: 'trivy-results'
