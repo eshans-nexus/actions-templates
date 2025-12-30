@@ -1,0 +1,36 @@
+name: 'Module: SLSA Attestation'
+
+on:
+  workflow_call:
+    inputs:
+      template_artifact:
+        required: true
+        type: string
+      packer_artifact:
+        required: true
+        type: string
+
+jobs:
+  attest:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      attestations: write
+      contents: read
+    steps:
+      # Download everything to one folder to attest them
+      - uses: actions/download-artifact@v4
+        with:
+          name: ${{ inputs.template_artifact }}
+          path: ./artifacts
+          
+      - uses: actions/download-artifact@v4
+        with:
+          name: ${{ inputs.packer_artifact }}
+          path: ./artifacts
+
+      # Attest everything in that folder (Template, Manifest, Log)
+      - name: Attest Build Provenance
+        uses: actions/attest-build-provenance@v1
+        with:
+          subject-path: ./artifacts/*

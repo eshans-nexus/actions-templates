@@ -1,0 +1,83 @@
+name: 'Module: Packer Build (AWS)'
+
+on:
+  workflow_call:
+    inputs:
+      matlab_version:
+        required: true
+        type: string
+      packer_dir:
+        default: './packer/v1'
+        type: string
+      test_mode:
+        description: 'Mock the build for testing'
+        default: false
+        type: boolean
+    outputs:
+      ami_id:
+        description: "The ID of the built AMI"
+        value: ${{ jobs.build.outputs.ami_id }}
+      region:
+        description: "The region where the AMI was built"
+        value: ${{ jobs.build.outputs.region }}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+    outputs:
+      ami_id: ${{ steps.export.outputs.ami_id }}
+      region: ${{ steps.export.outputs.region }}
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Configure AWS Credentials
+        if: inputs.test_mode == false
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_OIDC_ROLE }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Setup Packer
+        if: inputs.test_mode == false
+        uses: hashicorp/setup-packer@main
+        with:
+          version: '1.10.2'
+
+      - name: Run Packer Build
+        if: inputs.test_mode == false
+        working-directory: ${{ inputs.packer_dir }}
+        run: |
+          packer init .
+          packer build -color=false \
+            -var-file="release-config/${{ inputs.matlab_version }}.pkrvars.hcl" \
+            . | tee packer-build.log
+
+      - name: Mock Build
+        if: inputs.test_mode == true
+        working-directory: ${{ inputs.packer_dir }}
+        run: |
+          mkdir -p .
+          echo "Mock Build Log" > packer-build.log
+          cat <<EOF > manifest.json
+          {"builds": [{"artifact_id": "us-east-1:ami-06554a9c16731eeb8"}]}
+          EOF
+
+      - name: Export Outputs
+        id: export
+        working-directory: ${{ inputs.packer_dir }}
+        run: |
+          sudo apt-get install -y jq
+          FULL_ID=$(jq -r '.builds[-1].artifact_id' manifest.json)
+          echo "ami_id=$(echo $FULL_ID | cut -d':' -f2)" >> $GITHUB_OUTPUT
+          echo "region=$(echo $FULL_ID | cut -d':' -f1)" >> $GITHUB_OUTPUT
+      
+      - name: Upload Packer Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: packer-artifacts
+          path: |
+            ${{ inputs.packer_dir }}/manifest.json
+            ${{ inputs.packer_dir }}/packer-build.log

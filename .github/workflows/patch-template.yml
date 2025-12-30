@@ -1,0 +1,30 @@
+name: 'Module: Patch Template (Single AMI)'
+
+on:
+  workflow_call:
+    inputs:
+      template_path:
+        required: true
+        type: string
+      ami_id:
+        required: true
+        type: string
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Inject Custom AMI
+        run: |
+          sudo apt-get install -y jq
+          jq --arg ami "${{ inputs.ami_id }}" \
+             '.Parameters.CustomAmiId.Default = $ami' \
+             ${{ inputs.template_path }} > patched-template.json
+             
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: patched-template
+          path: patched-template.json

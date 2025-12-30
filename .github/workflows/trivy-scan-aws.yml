@@ -1,0 +1,90 @@
+name: 'Module: Trivy Scan (AWS)'
+
+on:
+  workflow_call:
+    inputs:
+      ami_id:
+        required: true
+        type: string
+      region:
+        required: true
+        type: string
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      security-events: write
+      contents: read
+    steps:
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_OIDC_ROLE }}
+          aws-region: ${{ inputs.region }}
+
+      - name: Install Trivy
+        uses: aquasecurity/setup-trivy@v0.2.2
+        with:
+          cache: true
+
+      - name: Prepare AMI for Scanning
+        id: prepare
+        run: |
+          AMI_ID="${{ inputs.ami_id }}"
+          REGION="${{ inputs.region }}"
+          
+          echo "Checking if $AMI_ID is public..."
+          IS_PUBLIC=$(aws ec2 describe-images --image-ids $AMI_ID --region $REGION --query 'Images[0].Public' --output text)
+          
+          if [ "$IS_PUBLIC" == "true" ]; then
+            echo "AMI is Public. Copying to private temporary AMI for EBS scanning..."
+            NEW_AMI=$(aws ec2 copy-image --source-image-id $AMI_ID --source-region $REGION --name "scan-temp-${{ github.run_id }}" --output text)
+            
+            echo "temp_ami_id=$NEW_AMI" >> $GITHUB_OUTPUT
+            echo "target_ami=$NEW_AMI" >> $GITHUB_OUTPUT
+            
+            aws ec2 wait image-available --image-ids $NEW_AMI
+          else
+            echo "AMI is Private. Scanning directly."
+            echo "target_ami=$AMI_ID" >> $GITHUB_OUTPUT
+            # temp_ami_id is left empty so cleanup knows to skip
+          fi
+
+      - name: Run Trivy
+        uses: nick-fields/retry@v3
+        with:
+          timeout_minutes: 60
+          max_attempts: 1
+          command: |
+            trivy vm --timeout 55m --scanners vuln --format sarif --output trivy-results.sarif \
+            --severity HIGH,CRITICAL ami:${{ steps.prepare.outputs.target_ami }}
+
+      - name: Upload to Security Tab
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: trivy-results.sarif
+          category: trivy-ami
+
+      - name: Upload Scan Artifact
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: trivy-results
+          path: trivy-results.sarif
+
+      - name: Cleanup
+        if: always()
+        run: |
+          TEMP_AMI="${{ steps.prepare.outputs.temp_ami_id }}"
+          
+          if [ -n "$TEMP_AMI" ]; then
+            echo "Cleaning up temporary AMI: $TEMP_AMI"
+            SNAP=$(aws ec2 describe-images --image-ids $TEMP_AMI --query 'Images[0].BlockDeviceMappings[0].Ebs.SnapshotId' --output text)
+            aws ec2 deregister-image --image-id $TEMP_AMI
+            if [ "$SNAP" != "None" ]; then aws ec2 delete-snapshot --snapshot-id $SNAP; fi
+          else
+            echo "No temporary AMI created. Skipping cleanup."
+          fi

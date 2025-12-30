@@ -1,0 +1,185 @@
+# 🛠️ MathWorks Build and Automation Infrastructure Modules
+
+This repository contains reusable GitHub Actions workflows ("Modules") for building, securing, and releasing Cloud Images (AMIs). These modules are designed to be centrally managed and used across multiple repositories.
+
+## 📋 Prerequisites
+
+To use these modules, your calling workflow must have an **AWS OIDC Provider** configured. The IAM Role assumed by GitHub Actions must have specific permissions (detailed per module below).
+
+### Global Secrets Required
+Your calling repository (or organization) should have these secrets defined:
+*   `AWS_OIDC_ROLE`: The ARN of the IAM Role to assume.
+*   `AWS_REGION`: The default AWS region (e.g., `us-east-1`).
+
+---
+
+## 📦 Module 1: Packer Build (AWS)
+**File:** `.github/workflows/packer-build-aws.yml`
+
+Runs a Packer build to create an Amazon Machine Image (AMI). Includes a "Test Mode" to simulate builds without incurring costs.
+
+### Inputs
+| Input | Type | Required | Default | Description |
+| :--- | :--- | :--- | :--- | :--- |
+| `matlab_version` | String | Yes | - | Version string (e.g., `R2025a`). Used for var-files. |
+| `packer_dir` | String | No | `./packer/v1` | Path to the Packer template directory. |
+| `test_mode` | Boolean | No | `false` | If `true`, skips the actual build and returns a mock AMI ID. |
+
+### Outputs
+| Output | Description |
+| :--- | :--- |
+| `ami_id` | The ID of the built (or mocked) AMI. |
+| `region` | The region where the AMI exists. |
+
+### Usage Example
+```yaml
+jobs:
+  build:
+    uses: eshans-nexus/actions-templates/.github/workflows/packer-build-aws.yml@v1
+    with:
+      matlab_version: 'R2025a'
+      test_mode: false
+    secrets: inherit
+```
+
+### ⚠️ Caveats & Requirements
+*   **Permissions:** `id-token: write` (for AWS Auth), `contents: read`.
+*   **IAM Policy:** The role needs `ec2:*` (or specific Packer permissions) and `iam:PassRole` (to assign roles to the EC2 instance).
+
+---
+
+## 🛡️ Module 2: Trivy Scan (AWS)
+**File:** `.github/workflows/trivy-scan-aws.yml`
+
+Performs a vulnerability scan on an AMI.
+1. Creates a temporary **private copy** of the AMI (to allow EBS Direct scanning).
+2. Scans the image using **Trivy** via the EBS Direct API (no EC2 instance launched).
+3. Uploads results to GitHub Security tab (SARIF).
+4. Cleans up the temporary AMI and Snapshots.
+
+### Inputs
+| Input | Type | Required | Default | Description |
+| :--- | :--- | :--- | :--- | :--- |
+| `ami_id` | String | Yes | - | The ID of the AMI to scan. |
+| `region` | String | Yes | - | The region where the AMI resides. |
+| `upload_results` | Boolean | No | `true` | Whether to upload the SARIF report to GitHub Security. |
+
+### Usage Example
+```yaml
+jobs:
+  scan:
+    needs: build
+    uses: eshans-nexus/actions-templates/.github/workflows/trivy-scan-aws.yml@v1
+    with:
+      ami_id: ${{ needs.build.outputs.ami_id }}
+      region: ${{ needs.build.outputs.region }}
+    permissions:
+      id-token: write
+      security-events: write # Required to upload scan results
+    secrets: inherit
+```
+
+### 🔐 Required IAM Permissions
+The AWS Role **MUST** have this specific policy to allow EBS Direct scanning and Cleanup:
+
+```json
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Action": [
+                "ec2:CopyImage",
+                "ec2:DeregisterImage",
+                "ec2:DescribeImages",
+                "ec2:DescribeSnapshots",
+                "ec2:DescribeVolumes",
+                "ec2:CopySnapshot",
+                "ec2:DeleteSnapshot",
+                "ec2:CreateTags",
+                "ebs:ListSnapshotBlocks",
+                "ebs:GetSnapshotBlock"
+            ],
+            "Resource": "*"
+        }
+    ]
+}
+```
+
+### ⚠️ Caveats
+*   **Timeouts:** Large images (like MATLAB) take time to scan. The module defaults to a **45-minute timeout**.
+*   **GitHub Security:** You must have GitHub Advanced Security enabled (for private repos) or be a public repo to see the results in the "Security" tab.
+
+---
+
+## 🌍 Module 3: AWS Distribute
+**File:** `.github/workflows/aws-distribute.yml`
+
+Copies a source AMI to multiple target regions, makes them **Public**, and outputs a JSON Map suitable for CloudFormation `Mappings`.
+
+### Inputs
+| Input | Type | Required | Default | Description |
+| :--- | :--- | :--- | :--- | :--- |
+| `source_ami` | String | Yes | - | The ID of the source AMI. |
+| `source_region` | String | Yes | - | Region of the source AMI. |
+| `target_regions` | String | Yes | - | Comma-separated list (e.g., `us-east-1,eu-west-1`). |
+
+### Outputs
+| Output | Description |
+| :--- | :--- |
+| `ami_map_json` | A JSON string formatted for CloudFormation mappings. <br> Example: `{"us-east-1": {"AMI": "ami-x"}, "eu-west-1": {"AMI": "ami-y"}}` |
+
+### Usage Example
+```yaml
+jobs:
+  distribute:
+    uses: eshans-nexus/actions-templates/.github/workflows/aws-distribute.yml@v1
+    with:
+      source_ami: 'ami-0123456789'
+      source_region: 'us-east-1'
+      target_regions: 'us-east-1,eu-west-1,ap-northeast-1'
+    secrets: inherit
+```
+
+### ⚠️ Caveats
+*   **Time:** Copying AMIs across regions takes 5-15 minutes per region.
+*   **Quotas:** Ensure your AWS account has quota for AMIs/Snapshots in the target regions.
+
+---
+
+## 📝 Module 4: Patch CloudFormation
+**File:** `.github/workflows/patch-template.yml`
+
+Injects the AMI Map generated by the *Distribute* module into the `Mappings.RegionMap` section of a CloudFormation template.
+
+### Inputs
+| Input | Type | Required | Default | Description |
+| :--- | :--- | :--- | :--- | :--- |
+| `template_path` | String | Yes | - | Path to the source JSON template. |
+| `ami_map_json` | String | Yes | - | The JSON string from the Distribute module. |
+
+### Usage Example
+```yaml
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: eshans-nexus/actions-templates/.github/workflows/patch-template.yml@v1
+        with:
+          template_path: './releases/R2025a/matlab.template.json'
+          ami_map_json: ${{ needs.distribute.outputs.ami_map_json }}
+```
+
+---
+
+## 🧪 Testing these Modules
+
+This repository contains a **Meta-CI** workflow (`.github/workflows/test-all-modules.yml`) that runs on every Pull Request.
+
+It validates the modules by:
+1.  Running `packer-build-aws` with `test_mode: true`.
+2.  Creating a dummy JSON template.
+3.  Running `patch-template` with dummy data.
+
+**Note:** The `trivy-scan` and `aws-distribute` modules are difficult to mock completely without valid AWS credentials, so they are typically tested in a "Staging" environment workflow.

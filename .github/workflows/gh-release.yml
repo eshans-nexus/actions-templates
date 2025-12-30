@@ -1,0 +1,63 @@
+name: 'Module: GitHub Release'
+
+on:
+  workflow_call:
+    inputs:
+      version:
+        required: true
+        type: string
+      prerelease:
+        default: false
+        type: boolean
+      template_artifact:
+        required: true
+        type: string
+      packer_artifact:
+        required: true
+        type: string
+      scan_artifact:
+        required: false
+        type: string
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Prepare Assets Directory
+        run: mkdir -p ./release-assets
+
+      # 1. Download Template
+      - name: Download Template
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ inputs.template_artifact }}
+          path: ./release-assets
+
+      # 2. Download Packer Logs & Manifest
+      - name: Download Packer Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ inputs.packer_artifact }}
+          path: ./release-assets
+
+      # 3. Download Trivy Results (if available)
+      - name: Download Scan Results
+        if: inputs.scan_artifact != ''
+        uses: actions/download-artifact@v4
+        continue-on-error: true # Don't fail if scan was skipped/missing
+        with:
+          name: ${{ inputs.scan_artifact }}
+          path: ./release-assets
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ inputs.version }}
+          name: MATLAB Release ${{ inputs.version }}
+          # This wildcard picks up json, log, sarif, etc.
+          files: ./release-assets/*
+          draft: true
+          prerelease: ${{ inputs.prerelease }}
+          generate_release_notes: true
