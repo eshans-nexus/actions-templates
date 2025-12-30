@@ -38,7 +38,7 @@ jobs:
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{ secrets.AWS_OIDC_ROLE }}
-          aws-region: ${{ secrets.AWS_REGION }}
+          aws-region: ${{ vars.AWS_REGION }}
 
       - name: Setup Packer
         if: inputs.test_mode == false
