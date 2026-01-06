@@ -1,3 +1,5 @@
+# Copyright 2026 The MathWorks, Inc
+
 import tempfile
 import os
 from typing import Optional, Tuple, Any, Dict, IO

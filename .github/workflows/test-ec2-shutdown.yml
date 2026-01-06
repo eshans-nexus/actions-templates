@@ -1,3 +1,5 @@
+# Copyright 2026 The MathWorks, Inc
+
 name: EC2 Shutdown Lambda Tests
 
 on:

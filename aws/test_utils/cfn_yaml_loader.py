@@ -1,3 +1,5 @@
+# Copyright 2026 The MathWorks, Inc
+
 import yaml
 from typing import Any, Dict, Union
 

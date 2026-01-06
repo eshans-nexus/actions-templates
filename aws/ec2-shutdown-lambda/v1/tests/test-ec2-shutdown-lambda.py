@@ -1,4 +1,6 @@
 """
+Copyright 2026 The MathWorks, Inc.
+
 Unit test for EC2 shutdown Lambda function.
 Tests the Lambda handler extracted from the CloudFormation template.
 """

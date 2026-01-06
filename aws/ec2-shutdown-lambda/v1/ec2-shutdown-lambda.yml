@@ -1,5 +1,5 @@
 ---
-# Copyright 2024 The MathWorks, Inc.
+# Copyright 2024-2026 The MathWorks, Inc.
 
 AWSTemplateFormatVersion: '2010-09-09'
 Description: MathWorks Reference Architecture - EC2 Instance Shutdown Template - Automates the shutdown of an EC2 instance after a few hours.
