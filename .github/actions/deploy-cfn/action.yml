@@ -1,0 +1,100 @@
+name: 'Deploy CloudFormation Stack'
+description: 'Maps parameters based on flavor and deploys a stack'
+
+inputs:
+  stack_name:
+    required: true
+  template_path:
+    required: true
+  flavor:
+    required: true
+  region:
+    required: true
+  # Dynamic inputs that need to be mapped to specific params
+  vpc_id:
+    required: true
+  subnet_id:
+    required: true
+  key_name:
+    required: true
+  ami_id:
+    description: "Custom AMI ID to inject"
+    required: false
+
+outputs:
+  stack_outputs:
+    description: "JSON string of stack outputs"
+    value: ${{ steps.outputs.outputs.STACK_OUTPUTS }}
+
+runs:
+  using: "composite"
+  steps:
+    - name: Prepare Parameters JSON
+      id: prep-params
+      shell: bash
+      env:
+        FLAVOR: ${{ inputs.flavor }}
+        VPC: ${{ inputs.vpc_id }}
+        SUBNET: ${{ inputs.subnet_id }}
+        KEY: ${{ inputs.key_name }}
+        AMI: ${{ inputs.ami_id }}
+      run: |
+        # Read the mapping config
+        CONFIG_FILE="${{ github.action_path }}/flavor-mappings.json"
+        
+        # 1. Extract variable parameter names for this flavor
+        KEY_PARAM=$(jq -r ".\"$FLAVOR\".key_param" $CONFIG_FILE)
+        VPC_PARAM=$(jq -r ".\"$FLAVOR\".vpc_param" $CONFIG_FILE)
+        SUBNET_PARAM=$(jq -r ".\"$FLAVOR\".subnet_param" $CONFIG_FILE)
+        
+        # 2. Start building the parameters JSON file with the 'defaults' from config
+        jq ".\"$FLAVOR\".defaults" $CONFIG_FILE > params.json
+        
+        # 3. Inject the Dynamic values using the specific names found in step 1
+        # We use a temp file (tmp.json) to allow iterative jq updates
+        
+        # Inject VPC
+        jq --arg k "$VPC_PARAM" --arg v "$VPC" '. += [{"ParameterKey": $k, "ParameterValue": $v}]' params.json > tmp.json && mv tmp.json params.json
+        
+        # Inject Subnet
+        jq --arg k "$SUBNET_PARAM" --arg v "$SUBNET" '. += [{"ParameterKey": $k, "ParameterValue": $v}]' params.json > tmp.json && mv tmp.json params.json
+        
+        # Inject Key
+        jq --arg k "$KEY_PARAM" --arg v "$KEY" '. += [{"ParameterKey": $k, "ParameterValue": $v}]' params.json > tmp.json && mv tmp.json params.json
+        
+        # Inject AMI (if present) - Assuming param name is usually InstanceAmiCustom or CustomAmiId
+        # You might want to add 'ami_param' to your json config if this name varies wildly
+        if [[ -n "$AMI" ]]; then
+           jq '. += [{"ParameterKey": "InstanceAmiCustom", "ParameterValue": env.AMI}]' params.json > tmp.json && mv tmp.json params.json
+        fi
+        
+        echo "Generated Parameters:"
+        cat params.json
+
+    - name: Deploy Stack
+      shell: bash
+      run: |
+        aws cloudformation create-stack \
+          --stack-name ${{ inputs.stack_name }} \
+          --template-body file://${{ inputs.template_path }} \
+          --region ${{ inputs.region }} \
+          --capabilities CAPABILITY_NAMED_IAM CAPABILITY_IAM \
+          --parameters file://params.json
+
+        echo "Waiting for stack creation..."
+        aws cloudformation wait stack-create-complete \
+          --stack-name ${{ inputs.stack_name }} \
+          --region ${{ inputs.region }}
+
+    - name: Retrieve Stack Outputs
+      id: outputs
+      shell: bash
+      run: |
+        # Get Outputs as a simplified JSON object { "OutputKey": "OutputValue" }
+        OUTPUTS=$(aws cloudformation describe-stacks \
+          --stack-name ${{ inputs.stack_name }} \
+          --region ${{ inputs.region }} \
+          --query "Stacks[0].Outputs" | \
+          jq -c 'reduce .[] as $item ({}; . + {($item.OutputKey): $item.OutputValue})')
+        
+        echo "STACK_OUTPUTS=$OUTPUTS" >> $GITHUB_OUTPUT

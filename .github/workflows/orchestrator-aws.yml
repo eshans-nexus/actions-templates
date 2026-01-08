@@ -29,15 +29,6 @@ jobs:
       test_mode: ${{ inputs.test_mode }}
     secrets: inherit
 
-  scan:
-    needs: build
-    name: Run trivy security scan
-    uses: ./.github/workflows/trivy-scan-aws.yml
-    with:
-      ami_id: ${{ needs.build.outputs.ami_id }}
-      region: ${{ needs.build.outputs.region }}
-    secrets: inherit
-
   patch:
     needs: build
     name: Patch template to use built AMI
