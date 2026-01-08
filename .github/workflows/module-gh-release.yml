@@ -15,9 +15,6 @@ on:
       packer_artifact:
         required: true
         type: string
-      scan_artifact:
-        required: false
-        type: string
 
 jobs:
   release:
@@ -40,15 +37,6 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: ${{ inputs.packer_artifact }}
-          path: ./release-assets
-
-      # 3. Download Trivy Results (if available)
-      - name: Download Scan Results
-        if: inputs.scan_artifact != ''
-        uses: actions/download-artifact@v4
-        continue-on-error: true # Don't fail if scan was skipped/missing
-        with:
-          name: ${{ inputs.scan_artifact }}
           path: ./release-assets
 
       - name: Create Release

@@ -37,6 +37,17 @@ jobs:
       template_path: ${{ format('{0}/{1}', format(inputs.template_dir_pattern, inputs.matlab_version), inputs.template_file_name) }}
       ami_id: ${{ needs.build.outputs.ami_id }}
 
+  smoke-test:
+    needs: [build, patch]
+    name: Smoke Test
+    uses: eshans-nexus/actions-templates/.github/workflows/module-aws-smoke-test.yml@main
+    with:
+      template_artifact: 'patched-template'
+      flavor: ${{ inputs.flavor }}
+      ami_id: ${{ needs.build.outputs.ami_id }}
+      test_mode: ${{ inputs.test_mode }}
+    secrets: inherit
+
   attest:
     needs: [build, patch]
     name: Attest builds to ensure authenticity
@@ -46,7 +57,7 @@ jobs:
       packer_artifact: 'packer-artifacts'
 
   release:
-    needs: [attest, patch, scan, build]
+    needs: [attest, patch, build]
     if: inputs.test_mode == false
     name: Create GitHub release
     uses: ./.github/workflows/gh-release.yml

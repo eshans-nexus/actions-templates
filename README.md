@@ -118,4 +118,4 @@ It validates the modules by:
 2.  Creating a dummy JSON template.
 3.  Running `patch-template` with dummy data.
 
-**Note:** The `trivy-scan` and `aws-distribute` modules are difficult to mock completely without valid AWS credentials, so they are typically tested in a "Staging" environment workflow.
+**Note:** The `aws-distribute` module is difficult to mock completely without valid AWS credentials, so they are typically tested in a "Staging" environment workflow.
