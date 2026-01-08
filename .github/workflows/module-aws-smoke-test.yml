@@ -54,7 +54,7 @@ jobs:
       - name: Deploy Infrastructure
         if: inputs.test_mode == false
         id: deploy
-        uses: ./.github/actions/deploy-cfn
+        uses: eshans-nexus/actions-templates/.github/actions/deploy-cfn@main
         with:
           stack_name: "smoke-test-${{ github.run_id }}"
           template_path: "./artifacts/patched-template.json"
