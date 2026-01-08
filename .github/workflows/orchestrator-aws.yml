@@ -22,7 +22,7 @@ on:
 jobs:
   build:
     name: Run packer build
-    uses: ./.github/workflows/packer-build-aws.yml
+    uses: ./.github/workflows/module-packer-build-aws.yml
     with:
       matlab_version: ${{ inputs.matlab_version }}
       packer_dir: ${{ inputs.packer_dir }}
@@ -32,7 +32,7 @@ jobs:
   patch:
     needs: build
     name: Patch template to use built AMI
-    uses: ./.github/workflows/patch-template.yml
+    uses: ./.github/workflows/module-patch-template-aws.yml
     with:
       template_path: ${{ format('{0}/{1}', format(inputs.template_dir_pattern, inputs.matlab_version), inputs.template_file_name) }}
       ami_id: ${{ needs.build.outputs.ami_id }}
@@ -51,7 +51,7 @@ jobs:
   attest:
     needs: [build, patch]
     name: Attest builds to ensure authenticity
-    uses: ./.github/workflows/slsa-attest.yml
+    uses: eshans-nexus/actions-templates/.github/workflows/module-slsa-attest.yml
     with:
       template_artifact: 'patched-template'
       packer_artifact: 'packer-artifacts'
@@ -60,10 +60,9 @@ jobs:
     needs: [attest, patch, build]
     if: inputs.test_mode == false
     name: Create GitHub release
-    uses: ./.github/workflows/gh-release.yml
+    uses: eshans-nexus/actions-templates/.github/workflows/module-gh-release.yml
     with:
       version: ${{ inputs.matlab_version }}
       prerelease: true
       template_artifact: 'patched-template'
       packer_artifact: 'packer-artifacts'
-      scan_artifact: 'trivy-results'
