@@ -6,7 +6,9 @@
     "defaults": [
       { "ParameterKey": "InstanceType", "ParameterValue": "t3.medium" },
       { "ParameterKey": "AutoShutdown", "ParameterValue": "After 1 hour" },
-      { "ParameterKey": "ClientIPAddress", "ParameterValue": "0.0.0.0/0" }
+      { "ParameterKey": "ClientIPAddress", "ParameterValue": "0.0.0.0/0" },
+      { "ParameterKey": "Password", "ParameterValue": "MathWorks!123" },
+      { "ParameterKey": "ConfirmPassword", "ParameterValue": "MathWorks!123" }
     ]
   },
   "matlab-windows": {
