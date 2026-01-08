@@ -12,7 +12,7 @@ inputs:
     required: false
     default: "patched-template.json"
   flavor:
-    description: "Deployment flavor (e.g., mps-linux)"
+    description: "Deployment flavor (e.g., ps-linux)"
     required: true
   region:
     required: true
@@ -40,7 +40,6 @@ runs:
       uses: actions/download-artifact@v4
       with:
         name: ${{ inputs.template_artifact }}
-        # Download to a temporary, isolated folder
         path: ${{ runner.temp }}/cfn-deployment
 
     - name: Validate Inputs

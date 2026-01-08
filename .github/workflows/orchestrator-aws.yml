@@ -6,6 +6,10 @@ on:
       matlab_version:
         required: true
         type: string
+      flavor: 
+        description: "Deployment flavor (matlab-linux, ps-linux, etc)"
+        required: true
+        type: string
       packer_dir:
         default: './packer/v1'
         type: string

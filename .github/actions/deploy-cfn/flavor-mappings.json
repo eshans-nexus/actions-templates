@@ -21,7 +21,7 @@
       { "ParameterKey": "ConfirmPassword", "ParameterValue": "MathWorks!123" }
     ]
   },
-  "mps-linux": {
+  "ps-linux": {
     "key_param": "SSHKeyName",
     "vpc_param": "VPC",
     "subnet_param": "Subnets",
@@ -34,7 +34,7 @@
       { "ParameterKey": "ClusterName", "ParameterValue": "SmokeTestLinux" }
     ]
   },
-  "mps-windows": {
+  "ps-windows": {
     "key_param": "RDPKeyName",
     "vpc_param": "VPC",
     "subnet_param": "Subnets",
