@@ -111,7 +111,7 @@ runs:
           --stack-name ${{ inputs.stack_name }} \
           --template-body file://"$TEMPLATE_FILE" \
           --region ${{ inputs.region }} \
-          --capabilities CAPABILITY_NAMED_IAM CAPABILITY_IAM \
+          --capabilities CAPABILITY_NAMED_IAM CAPABILITY_IAM CAPABILITY_AUTO_EXPAND \
           --parameters file://params.json
 
         echo "Waiting for stack creation..."
