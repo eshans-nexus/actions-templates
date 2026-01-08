@@ -65,17 +65,16 @@ runs:
         # Read the mapping config
         CONFIG_FILE="${{ github.action_path }}/flavor-mappings.json"
         
-        # 1. Extract variable parameter names for this flavor
+        # Extract variable parameter names for this flavor
         KEY_PARAM=$(jq -r ".\"$FLAVOR\".key_param" $CONFIG_FILE)
         VPC_PARAM=$(jq -r ".\"$FLAVOR\".vpc_param" $CONFIG_FILE)
         SUBNET_PARAM=$(jq -r ".\"$FLAVOR\".subnet_param" $CONFIG_FILE)
+        IMAGE_PARAM=$(jq -r ".\"$FLAVOR\".ami_param" $CONFIG_FILE)
         
-        # 2. Start building the parameters JSON file with the 'defaults' from config
         jq ".\"$FLAVOR\".defaults" $CONFIG_FILE > params.json
         
-        # 3. Inject the Dynamic values using the specific names found in step 1
         # We use a temp file (tmp.json) to allow iterative jq updates
-        
+
         # Inject VPC
         jq --arg k "$VPC_PARAM" --arg v "$VPC" '. += [{"ParameterKey": $k, "ParameterValue": $v}]' params.json > tmp.json && mv tmp.json params.json
         
@@ -85,12 +84,14 @@ runs:
         # Inject Key
         jq --arg k "$KEY_PARAM" --arg v "$KEY" '. += [{"ParameterKey": $k, "ParameterValue": $v}]' params.json > tmp.json && mv tmp.json params.json
         
-        # Inject AMI (if present) - Assuming param name is usually InstanceAmiCustom or CustomAmiId
-        # You might want to add 'ami_param' to your json config if this name varies wildly
+        # Inject AMI
         if [[ -n "$AMI" ]]; then
-           jq '. += [{"ParameterKey": "InstanceAmiCustom", "ParameterValue": env.AMI}]' params.json > tmp.json && mv tmp.json params.json
+          jq --arg k "$IMAGE_PARAM" --arg v "$KEY" '. += [{"ParameterKey": $k, "ParameterValue": $v}]' params.json > tmp.json && mv tmp.json params.json
         fi
         
+        # --- add additional params here ---
+        # ----------------------------------
+
         echo "Generated Parameters:"
         cat params.json
 

@@ -3,6 +3,7 @@
     "key_param": "SSHKeyName",
     "vpc_param": "VPC",
     "subnet_param": "Subnet",
+    "ami_param": "CustomAmiId",
     "defaults": [
       { "ParameterKey": "InstanceType", "ParameterValue": "t3.medium" },
       { "ParameterKey": "AutoShutdown", "ParameterValue": "After 1 hour" },
@@ -15,6 +16,7 @@
     "key_param": "RDPKeyName",
     "vpc_param": "VPC",
     "subnet_param": "Subnet",
+    "ami_param": "CustomAmiId",
     "defaults": [
       { "ParameterKey": "InstanceType", "ParameterValue": "t3.xlarge" },
       { "ParameterKey": "AutoShutdown", "ParameterValue": "After 1 hour" },
@@ -27,6 +29,7 @@
     "key_param": "SSHKeyName",
     "vpc_param": "VPC",
     "subnet_param": "Subnets",
+    "ami_param": "InstanceAmiCustom",
     "defaults": [
       { "ParameterKey": "HeadnodeInstanceType", "ParameterValue": "t3.medium" },
       { "ParameterKey": "WorkerInstanceType", "ParameterValue": "t3.medium" },
@@ -40,6 +43,7 @@
     "key_param": "RDPKeyName",
     "vpc_param": "VPC",
     "subnet_param": "Subnets",
+    "ami_param": "InstanceAmiCustom",
     "defaults": [
       { "ParameterKey": "HeadnodeInstanceType", "ParameterValue": "t3.xlarge" },
       { "ParameterKey": "WorkerInstanceType", "ParameterValue": "t3.xlarge" },
