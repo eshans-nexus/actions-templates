@@ -50,14 +50,13 @@ jobs:
           chmod 600 private_key.pem
           echo "NAME=$KEY_NAME" >> $GITHUB_OUTPUT
 
-      # --- REUSABLE DEPLOY ACTION CALL ---
       - name: Deploy Infrastructure
         if: inputs.test_mode == false
         id: deploy
         uses: eshans-nexus/actions-templates/.github/actions/deploy-cfn@main
         with:
           stack_name: "smoke-test-${{ github.run_id }}"
-          template_path: "./artifacts/patched-template.json"
+          template_artifact: ${{ inputs.template_artifact }} 
           flavor: ${{ inputs.flavor }}
           region: ${{ inputs.region }}
           vpc_id: ${{ secrets.TEST_VPC_ID }}

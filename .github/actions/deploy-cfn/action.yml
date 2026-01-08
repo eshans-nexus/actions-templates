@@ -1,12 +1,18 @@
 name: 'Deploy CloudFormation Stack'
-description: 'Maps parameters based on flavor and deploys a stack'
+description: 'Downloads template, maps parameters, and deploys stack'
 
 inputs:
   stack_name:
     required: true
-  template_path:
+  template_artifact:
+    description: "Name of the GitHub Artifact containing the template"
     required: true
+  template_filename:
+    description: "Filename inside the artifact (default: patched-template.json)"
+    required: false
+    default: "patched-template.json"
   flavor:
+    description: "Deployment flavor (e.g., mps-linux)"
     required: true
   region:
     required: true
@@ -29,6 +35,22 @@ outputs:
 runs:
   using: "composite"
   steps:
+    # --- NEW STEP: Self-contained Download ---
+    - name: Download Template
+      uses: actions/download-artifact@v4
+      with:
+        name: ${{ inputs.template_artifact }}
+        # Download to a temporary, isolated folder
+        path: ${{ runner.temp }}/cfn-deployment
+
+    - name: Validate Inputs
+      shell: bash
+      run: |
+        if [[ -z "${{ inputs.flavor }}" ]]; then
+          echo "::error::Input 'flavor' is empty. Please check your workflow configuration."
+          exit 1
+        fi
+
     - name: Prepare Parameters JSON
       id: prep-params
       shell: bash
@@ -38,6 +60,8 @@ runs:
         SUBNET: ${{ inputs.subnet_id }}
         KEY: ${{ inputs.key_name }}
         AMI: ${{ inputs.ami_id }}
+        # Use github.action_path to find the bundled config file
+        CONFIG_FILE: "${{ github.action_path }}/flavor-mappings.json"
       run: |
         # Read the mapping config
         CONFIG_FILE="${{ github.action_path }}/flavor-mappings.json"
@@ -74,9 +98,18 @@ runs:
     - name: Deploy Stack
       shell: bash
       run: |
+        # Construct path to the downloaded file
+        TEMPLATE_FILE="${{ runner.temp }}/cfn-deployment/${{ inputs.template_filename }}"
+        
+        if [[ ! -f "$TEMPLATE_FILE" ]]; then
+          echo "::error::Template file not found at $TEMPLATE_FILE"
+          ls -R ${{ runner.temp }}/cfn-deployment
+          exit 1
+        fi
+
         aws cloudformation create-stack \
           --stack-name ${{ inputs.stack_name }} \
-          --template-body file://${{ inputs.template_path }} \
+          --template-body file://"$TEMPLATE_FILE" \
           --region ${{ inputs.region }} \
           --capabilities CAPABILITY_NAMED_IAM CAPABILITY_IAM \
           --parameters file://params.json
