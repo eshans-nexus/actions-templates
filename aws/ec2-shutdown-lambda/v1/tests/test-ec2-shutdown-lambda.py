@@ -6,7 +6,6 @@ Tests the Lambda handler extracted from the CloudFormation template.
 """
 import os
 import sys
-import shutil
 import importlib.util
 import pytest
 import boto3
@@ -21,38 +20,10 @@ YAML_FILE_PATH = TEST_DIR.parent / 'ec2-shutdown-lambda.yml'
 
 # Add to path for imports
 sys.path.insert(0, str(REPO_ROOT))
-from aws.test_utils.extract_lambda_functions import extract_lambda_functions
+from aws.test_utils.lambda_test_fixtures import create_lambda_function_files_fixture
 
-
-@pytest.fixture(scope="session")
-def lambda_function_files():
-    """Extract Lambda function from YAML once for all tests"""
-    # Set AWS region
-    os.environ['AWS_DEFAULT_REGION'] = 'us-east-1'
-    
-    # Verify YAML file exists
-    if not YAML_FILE_PATH.exists():
-        pytest.exit(f"YAML file not found at: {YAML_FILE_PATH}", 3)
-    
-    # Extract Lambda function from YAML
-    temp_file, temp_path, temp_dir_path = extract_lambda_functions(YAML_FILE_PATH)
-    
-    if not temp_file:
-        pytest.exit("Failed to extract Lambda function from YAML. This indicates an issue with the YAML file or extraction logic.", 3)
-    
-    yield temp_file, temp_path, temp_dir_path
-    
-    # Cleanup after all tests complete
-    if temp_file:
-        try:
-            temp_file.close()
-        except:
-            pass
-    if temp_dir_path and os.path.exists(temp_dir_path):
-        try:
-            shutil.rmtree(temp_dir_path)
-        except Exception as e:
-            print(f"Warning: Could not remove directory {temp_dir_path}: {e}")
+# Create the fixture using the factory
+lambda_function_files = create_lambda_function_files_fixture(YAML_FILE_PATH)
 
 
 class TestEC2ShutdownLambda:
