@@ -23,9 +23,6 @@ inputs:
     required: true
   key_name:
     required: true
-  ami_id:
-    description: "Custom AMI ID to inject"
-    required: false
 
 outputs:
   stack_outputs:
@@ -58,7 +55,6 @@ runs:
         VPC: ${{ inputs.vpc_id }}
         SUBNET: ${{ inputs.subnet_id }}
         KEY: ${{ inputs.key_name }}
-        AMI: ${{ inputs.ami_id }}
         # Use github.action_path to find the bundled config file
         CONFIG_FILE: "${{ github.action_path }}/flavor-mappings.json"
       run: |
@@ -69,7 +65,6 @@ runs:
         KEY_PARAM=$(jq -r ".\"$FLAVOR\".key_param" $CONFIG_FILE)
         VPC_PARAM=$(jq -r ".\"$FLAVOR\".vpc_param" $CONFIG_FILE)
         SUBNET_PARAM=$(jq -r ".\"$FLAVOR\".subnet_param" $CONFIG_FILE)
-        IMAGE_PARAM=$(jq -r ".\"$FLAVOR\".ami_param" $CONFIG_FILE)
         
         jq ".\"$FLAVOR\".defaults" $CONFIG_FILE > params.json
         
@@ -83,11 +78,6 @@ runs:
         
         # Inject Key
         jq --arg k "$KEY_PARAM" --arg v "$KEY" '. += [{"ParameterKey": $k, "ParameterValue": $v}]' params.json > tmp.json && mv tmp.json params.json
-        
-        # Inject AMI
-        if [[ -n "$AMI" ]]; then
-          jq --arg k "$IMAGE_PARAM" --arg v "$KEY" '. += [{"ParameterKey": $k, "ParameterValue": $v}]' params.json > tmp.json && mv tmp.json params.json
-        fi
         
         # --- add additional params here ---
         # ----------------------------------

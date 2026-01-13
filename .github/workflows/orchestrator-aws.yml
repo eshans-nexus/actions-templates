@@ -48,7 +48,6 @@ jobs:
     with:
       template_artifact: 'patched-template'
       flavor: ${{ inputs.flavor }}
-      ami_id: ${{ needs.build.outputs.ami_id }}
       # test_mode: ${{ inputs.test_mode }}
     secrets: inherit
 
