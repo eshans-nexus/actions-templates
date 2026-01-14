@@ -61,7 +61,7 @@ jobs:
     secrets: inherit
 
   release:
-    needs: [build, patch, attest, smoke-test]
+    needs: [build, patch, attest]
     # if: inputs.test_mode == false
     name: Create GitHub release
     uses: eshans-nexus/actions-templates/.github/workflows/module-gh-release.yml@main
