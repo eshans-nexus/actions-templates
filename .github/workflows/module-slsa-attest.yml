@@ -10,9 +10,9 @@ on:
         required: true
         type: string
     outputs:
-      provenance_summary:
-        description: "Markdown summary of the attestation"
-        value: ${{ jobs.attest.outputs.summary }}
+      attestation_url:
+        description: "URL to the attestation details"
+        value: ${{ jobs.attest.outputs.attestation_url }}
 
 jobs:
   attest:
@@ -22,7 +22,7 @@ jobs:
       attestations: write
       contents: read
     outputs:
-      summary: ${{ steps.get-summary.outputs.markdown }}
+      attestation_url: ${{ steps.attest.outputs.attestation-url }}
     steps:
       - uses: actions/download-artifact@v4
         with:
@@ -35,15 +35,7 @@ jobs:
           path: ./artifacts
 
       - name: Attest Build Provenance
+        id: attest
         uses: actions/attest-build-provenance@v1
         with:
           subject-path: ./artifacts/*
-      
-      - name: Capture Attestation Summary
-        id: get-summary
-        run: |
-          # Use a delimiter to handle multiline markdown content safely
-          EOF=$(dd if=/dev/urandom bs=15 count=1 status=none | base64)
-          echo "markdown<<$EOF" >> $GITHUB_OUTPUT
-          cat $GITHUB_STEP_SUMMARY >> $GITHUB_OUTPUT
-          echo "$EOF" >> $GITHUB_OUTPUT

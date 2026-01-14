@@ -12,9 +12,9 @@ on:
       ami_id:
         required: true
         type: string
-      provenance_summary:
-        description: "Markdown content regarding attestations"
-        required: false
+      attestation_url:
+        description: "Direct link to the build provenance"
+        required: true
         type: string
       prerelease:
         default: false
@@ -33,7 +33,7 @@ jobs:
       contents: write
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Prepare Assets Directory
         run: mkdir -p ./release-assets
 
@@ -48,22 +48,19 @@ jobs:
         with:
           name: ${{ inputs.packer_artifact }}
           path: ./release-assets
-      
+
       - name: Extract OS Details
         id: extract-os
         shell: bash
         run: |
           # Define path to config based on version input
-          # Assuming repo structure: packer/v1/release-config/R20xx.pkrvars.hcl
           FILE="packer/v1/release-config/${{ inputs.version }}.pkrvars.hcl"
           
           if [[ -f "$FILE" ]]; then
             # Extract text inside quotes for BASE_AMI_NAME
             RAW_OS=$(grep "BASE_AMI_NAME" "$FILE" | cut -d'"' -f2)
-            
-            # Clean up wildcards (e.g., ubuntu-server-*) to make it readable
+            # Clean up wildcards (e.g., ubuntu-server-*)
             CLEAN_OS=$(echo "$RAW_OS" | awk -F/ '{print $NF}' | sed 's/-\*$//')
-            
             echo "os_name=$CLEAN_OS" >> $GITHUB_OUTPUT
           else
             echo "::warning::Config file $FILE not found. Falling back to flavor mapping."
@@ -91,7 +88,9 @@ jobs:
           [View Full Change History]($REPO_URL/commits/${{ inputs.version }})
           
           ### 🛡️ Supply Chain Security
-          ${{ inputs.provenance_summary }}
+          This release was built via GitHub Actions and is signed with SLSA Build Provenance.
+          
+          👉 **[View Build Attestation](${{ inputs.attestation_url }})**
           EOF
 
       - name: Create Release

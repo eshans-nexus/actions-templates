@@ -68,7 +68,7 @@ jobs:
       version: ${{ inputs.matlab_version }}
       flavor: ${{ inputs.flavor }}
       ami_id: ${{ needs.build.outputs.ami_id }}
-      provenance_summary: ${{ needs.attest.outputs.provenance_summary }}
+      attestation_url: ${{ needs.attest.outputs.attestation_url }}
       prerelease: false
       template_artifact: 'patched-template'
       packer_artifact: 'packer-artifacts'
