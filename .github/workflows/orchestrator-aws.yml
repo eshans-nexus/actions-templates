@@ -42,7 +42,7 @@ jobs:
       ami_id: ${{ needs.build.outputs.ami_id }}
 
   smoke-test:
-    needs: [build, patch]
+    needs: patch
     name: Smoke Test
     uses: eshans-nexus/actions-templates/.github/workflows/module-aws-smoke-test.yml@main
     with:
@@ -52,7 +52,7 @@ jobs:
     secrets: inherit
 
   attest:
-    needs: [build, patch]
+    needs: patch
     name: Attest builds to ensure authenticity
     uses: eshans-nexus/actions-templates/.github/workflows/module-slsa-attest.yml@main
     with:
@@ -60,8 +60,8 @@ jobs:
       packer_artifact: 'packer-artifacts'
 
   release:
-    needs: [attest, patch, build]
-    if: inputs.test_mode == false
+    needs: [smoke-test, attest]
+    # if: inputs.test_mode == false
     name: Create GitHub release
     uses: eshans-nexus/actions-templates/.github/workflows/module-gh-release.yml@main
     with:
