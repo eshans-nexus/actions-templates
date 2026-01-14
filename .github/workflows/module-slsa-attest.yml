@@ -9,6 +9,10 @@ on:
       packer_artifact:
         required: true
         type: string
+    outputs:
+      provenance_summary:
+        description: "Markdown summary of the attestation"
+        value: ${{ jobs.attest.outputs.summary }}
 
 jobs:
   attest:
@@ -17,8 +21,9 @@ jobs:
       id-token: write
       attestations: write
       contents: read
+    outputs:
+      summary: ${{ steps.get-summary.outputs.markdown }}
     steps:
-      # Download everything to one folder to attest them
       - uses: actions/download-artifact@v4
         with:
           name: ${{ inputs.template_artifact }}
@@ -29,8 +34,16 @@ jobs:
           name: ${{ inputs.packer_artifact }}
           path: ./artifacts
 
-      # Attest everything in that folder (Template, Manifest, Log)
       - name: Attest Build Provenance
         uses: actions/attest-build-provenance@v1
         with:
           subject-path: ./artifacts/*
+      
+      - name: Capture Attestation Summary
+        id: get-summary
+        run: |
+          # Use a delimiter to handle multiline markdown content safely
+          EOF=$(dd if=/dev/urandom bs=15 count=1 status=none | base64)
+          echo "markdown<<$EOF" >> $GITHUB_OUTPUT
+          cat $GITHUB_STEP_SUMMARY >> $GITHUB_OUTPUT
+          echo "$EOF" >> $GITHUB_OUTPUT

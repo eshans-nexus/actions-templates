@@ -41,6 +41,14 @@ jobs:
       template_path: ${{ format('{0}/{1}', format(inputs.template_dir_pattern, inputs.matlab_version), inputs.template_file_name) }}
       ami_id: ${{ needs.build.outputs.ami_id }}
 
+  attest:
+    needs: [build, patch]
+    name: Attest builds to ensure authenticity
+    uses: eshans-nexus/actions-templates/.github/workflows/module-slsa-attest.yml@main
+    with:
+      template_artifact: 'patched-template'
+      packer_artifact: 'packer-artifacts'
+
   smoke-test:
     needs: [build, patch]
     name: Smoke Test
@@ -51,21 +59,16 @@ jobs:
       # test_mode: ${{ inputs.test_mode }}
     secrets: inherit
 
-  attest:
-    needs: [build, patch]
-    name: Attest builds to ensure authenticity
-    uses: eshans-nexus/actions-templates/.github/workflows/module-slsa-attest.yml@main
-    with:
-      template_artifact: 'patched-template'
-      packer_artifact: 'packer-artifacts'
-
   release:
-    needs: [smoke-test, attest]
+    needs: [build, patch, attest, smoke-test]
     # if: inputs.test_mode == false
     name: Create GitHub release
     uses: eshans-nexus/actions-templates/.github/workflows/module-gh-release.yml@main
     with:
       version: ${{ inputs.matlab_version }}
-      prerelease: true
+      flavor: ${{ inputs.flavor }}
+      ami_id: ${{ needs.build.outputs.ami_id }}
+      provenance_summary: ${{ needs.attest.outputs.provenance_summary }}
+      prerelease: false
       template_artifact: 'patched-template'
       packer_artifact: 'packer-artifacts'
