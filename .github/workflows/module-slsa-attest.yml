@@ -9,10 +9,6 @@ on:
       packer_artifact:
         required: true
         type: string
-    outputs:
-      attestation_url:
-        description: "URL to the attestation details"
-        value: ${{ jobs.attest.outputs.attestation_url }}
 
 jobs:
   attest:
@@ -21,8 +17,6 @@ jobs:
       id-token: write
       attestations: write
       contents: read
-    outputs:
-      attestation_url: ${{ steps.attest.outputs.attestation-url }}
     steps:
       - uses: actions/download-artifact@v4
         with:
@@ -38,17 +32,4 @@ jobs:
         id: attest
         uses: actions/attest-build-provenance@v1
         with:
-          subject-path: ./artifacts/manifest.json
-
-      # - name: Attest Build Provenance
-      #   id: attest-template
-      #   uses: actions/attest-build-provenance@v1
-      #   with:
-      #     subject-path: ./artifacts/patched-template.json
-
-      # - name: Attest Build Provenance
-      #   id: attest-build-log
-      #   uses: actions/attest-build-provenance@v1
-      #   with:
-      #     subject-path: ./artifacts/packer-build.log
-      
+          subject-path: ./artifacts/*

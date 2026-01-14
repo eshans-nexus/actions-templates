@@ -12,10 +12,6 @@ on:
       ami_id:
         required: true
         type: string
-      attestation_url:
-        description: "Direct link to the build provenance"
-        required: true
-        type: string
       prerelease:
         default: false
         type: boolean
@@ -88,9 +84,7 @@ jobs:
           [View Full Change History]($REPO_URL/commits/${{ inputs.version }})
           
           ### 🛡️ Supply Chain Security
-          This release was built via GitHub Actions and is signed with SLSA Build Provenance.
-          
-          👉 **[View Build Attestation](${{ inputs.attestation_url }})**
+          Build provenance attestations for these assets can be verified in the [GitHub Attestations tab]($REPO_URL/attestations).
           EOF
 
       - name: Create Release
