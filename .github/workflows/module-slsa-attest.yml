@@ -38,4 +38,17 @@ jobs:
         id: attest
         uses: actions/attest-build-provenance@v1
         with:
-          subject-path: ./artifacts/*
+          subject-path: ./artifacts/manifest.json
+
+      # - name: Attest Build Provenance
+      #   id: attest-template
+      #   uses: actions/attest-build-provenance@v1
+      #   with:
+      #     subject-path: ./artifacts/patched-template.json
+
+      # - name: Attest Build Provenance
+      #   id: attest-build-log
+      #   uses: actions/attest-build-provenance@v1
+      #   with:
+      #     subject-path: ./artifacts/packer-build.log
+      
