@@ -60,7 +60,6 @@ jobs:
           subnet_id: ${{ secrets.TEST_SUBNET_ID }}
           key_name: ${{ steps.ssh-key.outputs.NAME }}
 
-      # --- VERIFICATION LOGIC ---
       - name: Verify Deployment (Linux)
         if: inputs.test_mode == false && contains(inputs.flavor, 'linux')
         env:

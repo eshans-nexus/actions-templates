@@ -57,7 +57,7 @@ runs:
         VPC: ${{ inputs.vpc_id }}
         SUBNET: ${{ inputs.subnet_id }}
         KEY: ${{ inputs.key_name }}
-        CLIENT_IP: ${{ steps.get-ip.outputs.ipv4 }} 
+        CLIENT_IP: "${{ steps.get-ip.outputs.ipv4 }}/32"
         CONFIG_FILE: "${{ github.action_path }}/flavor-mappings.json"
       run: |
         # Read the mapping config
