@@ -50,6 +50,7 @@ jobs:
       packer_artifact: 'packer-artifacts'
 
   smoke-test:
+    if: inputs.test_mode == false
     needs: [build, patch]
     name: Smoke Test
     uses: eshans-nexus/actions-templates/.github/workflows/module-aws-smoke-test.yml@main
