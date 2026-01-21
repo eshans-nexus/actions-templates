@@ -1,0 +1,77 @@
+name: 'Module: Aggregate GitHub Release'
+
+on:
+  workflow_call:
+    inputs:
+      release_tag:
+        required: true
+        type: string
+      prerelease:
+        default: true
+        type: boolean
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Make staging directories
+        run: |
+          mkdir -p ./all-artifacts
+          mkdir -p ./final-assets
+
+      # Download EVERYTHING (Templates, Logs, Metadata) from all matrix jobs
+      - name: Download All Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: ./all-artifacts
+
+      - name: Aggregate Release Body and Assets
+        run: |
+          echo "# MATLAB Reference Architecture Build Report" > ./final-assets/release_body.md
+          echo "Build Run: ${{ github.run_id }}" >> ./final-assets/release_body.md
+          echo "" >> ./final-assets/release_body.md
+
+          # Iterate through the downloaded artifact folders
+          # Folder structure example: ./all-artifacts/release-info-R2025a/release_metadata.md
+          
+          cd ./all-artifacts
+          
+          # 1. Process Metadata Files
+          # Look for folders starting with release-info-*
+          for dir in release-info-*; do
+            if [ -d "$dir" ]; then
+              echo "Processing metadata from $dir..."
+              cat "$dir/release_metadata.md" >> ../final-assets/release_body.md
+              echo "" >> ../final-assets/release_body.md
+            fi
+          done
+
+          # 2. Flatten Assets (Templates, Logs)
+          # We want to move actual files to final-assets renaming them with the folder suffix
+          for dir in *; do
+            if [[ -d "$dir" && "$dir" != "release-info-"* ]]; then
+              # E.g., dir = "packer-artifacts-R2025a"
+              # Extract suffix (R2025a) assuming format name-suffix
+              SUFFIX="${dir##*-}"
+              
+              for file in "$dir"/*; do
+                filename=$(basename "$file")
+                # e.g. R2025a-manifest.json
+                cp "$file" "../final-assets/${SUFFIX}-${filename}"
+              done
+            fi
+          done
+          
+          ls -R ../final-assets
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ inputs.release_tag }}
+          name: MATLAB Multi-Version Build (${{ inputs.release_tag }})
+          body_path: ./final-assets/release_body.md
+          files: ./final-assets/*
+          draft: false
+          prerelease: ${{ inputs.prerelease }}

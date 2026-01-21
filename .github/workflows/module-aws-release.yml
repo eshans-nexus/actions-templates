@@ -1,0 +1,66 @@
+name: 'Module: AWS Release Prep'
+
+on:
+  workflow_call:
+    inputs:
+      version:
+        required: true
+        type: string
+      flavor:
+        required: true
+        type: string
+      ami_id:
+        required: true
+        type: string
+      template_artifact:
+        required: true
+        type: string
+      packer_artifact:
+        required: true
+        type: string
+      artifact_suffix:
+        required: false
+        default: ""
+        type: string
+
+jobs:
+  prep-release:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write # Might need for S3/EC2 copy calls
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download Artifacts (Verification)
+        # We download them just to ensure they exist and ready for next steps (like S3 push)
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ inputs.template_artifact }}
+          path: ./prep-assets
+      
+      - name: Copy AMI to Production (Placeholder)
+        run: echo "Copying ${{ inputs.ami_id }} to prod regions..."
+
+      - name: Push Template to Prod S3 (Placeholder)
+        run: echo "Pushing ./prep-assets/patched-template.json to s3://prod-bucket/..."
+
+      - name: Generate Release Metadata
+        run: |
+          mkdir -p ./out
+          
+          # Create a markdown fragment for this specific version
+          cat <<EOF > ./out/release_metadata.md
+          ## MATLAB ${{ inputs.version }} (${{ inputs.flavor }})
+          * **AMI ID:** \`${{ inputs.ami_id }}\`
+          * **OS Flavor:** ${{ inputs.flavor }}
+          * **Build Date:** $(date +'%Y-%m-%d')
+          
+          ---
+          EOF
+
+      - name: Upload Release Metadata
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-info${{ inputs.artifact_suffix != '' && format('-{0}', inputs.artifact_suffix) || '' }}
+          path: ./out/release_metadata.md

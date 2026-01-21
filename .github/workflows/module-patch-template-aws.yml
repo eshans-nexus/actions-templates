@@ -9,6 +9,10 @@ on:
       ami_id:
         required: true
         type: string
+      artifact_suffix:
+        required: false
+        default: ""
+        type: string
 
 jobs:
   patch:
@@ -26,5 +30,5 @@ jobs:
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: patched-template
+          name: patched-template${{ inputs.artifact_suffix != '' && format('-{0}', inputs.artifact_suffix) || '' }}
           path: patched-template.json
