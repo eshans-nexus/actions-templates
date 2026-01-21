@@ -25,7 +25,7 @@ on:
 jobs:
   build:
     name: Run packer build
-    uses: eshans-nexus/actions-templates/.github/workflows/module-packer-build-aws.yml@main
+    uses: eshans-nexus/actions-templates/.github/workflows/module-aws-packer-build.yml@main
     with:
       matlab_version: ${{ inputs.matlab_version }}
       packer_dir: ${{ inputs.packer_dir }}
@@ -36,7 +36,7 @@ jobs:
   patch:
     needs: build
     name: Patch template to use built AMI
-    uses: eshans-nexus/actions-templates/.github/workflows/module-patch-template-aws.yml@main
+    uses: eshans-nexus/actions-templates/.github/workflows/module-aws-patch-template.yml@main
     with:
       template_path: ${{ format('{0}/{1}', format(inputs.template_dir_pattern, inputs.matlab_version), inputs.template_file_name) }}
       ami_id: ${{ needs.build.outputs.ami_id }}
@@ -45,7 +45,7 @@ jobs:
   attest:
     needs: [build, patch]
     name: Attest builds to ensure authenticity
-    uses: eshans-nexus/actions-templates/.github/workflows/module-slsa-attest.yml@main
+    uses: eshans-nexus/actions-templates/.github/workflows/module-common-slsa-attest.yml@main
     with:
       template_artifact: 'patched-template-${{ inputs.artifact_suffix }}'
       packer_artifact: 'packer-artifacts-${{ inputs.artifact_suffix }}'
