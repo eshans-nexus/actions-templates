@@ -55,7 +55,7 @@ jobs:
         id: deploy
         uses: eshans-nexus/actions-templates/.github/actions/deploy-cfn@main
         with:
-          stack_name: "msa-gen-smoke-test-${{ github.run_id }}"
+          stack_name: "msa-gen-smoke-test-${{ github.run_id }}-${{ inputs.artifact_suffix }}"
           template_artifact: ${{ inputs.template_artifact }}-${{ inputs.artifact_suffix }}
           flavor: ${{ inputs.flavor }}
           region: ${{ inputs.region }}
