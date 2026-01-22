@@ -73,9 +73,8 @@ jobs:
               f.write(f"matrix={json.dumps(versions)}\n")
 
   create-artifacts:
-    name: Run build and test pipeline
     needs: prepare-versions
-    name: Process ${{ matrix.version }}
+    name: ${{ matrix.version }}
     strategy:
         fail-fast: false
         max-parallel: 5
