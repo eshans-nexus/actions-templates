@@ -16,7 +16,7 @@ on:
         type: string
       template_file_name:
         type: string
-      test_mode:
+      skip_build:
         type: boolean
 
 jobs:
@@ -24,7 +24,7 @@ jobs:
     uses: eshans-nexus/actions-templates/.github/workflows/module-packer-build-aws.yml@main
     with:
       packer_dir: ${{ inputs.packer_dir }}
-      test_mode: ${{ inputs.test_mode }}
+      skip_build: ${{ inputs.skip_build }}
       matlab_version: ${{ inputs.matlab_version }}
     secrets: inherit
 
