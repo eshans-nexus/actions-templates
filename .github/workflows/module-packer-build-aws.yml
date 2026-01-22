@@ -54,7 +54,7 @@ jobs:
           packer init .
           packer build -color=false \
             -var-file="release-config/${{ inputs.matlab_version }}.pkrvars.hcl" \
-            . | tee packer-build.log
+            . | tee "${{ inputs.matlab_version }}-packer-build.log"
 
       - name: Mock Build
         if: inputs.skip_build == true
@@ -62,7 +62,7 @@ jobs:
         run: |
           mkdir -p .
           echo "Mock Build Log" > packer-build.log
-          cat <<EOF > manifest.json
+          cat <<EOF > "${{ inputs.matlab_version }}-manifest.json"
           {"builds": [{"artifact_id": "us-east-1:ami-06554a9c16731eeb8"}]}
           EOF
 
@@ -78,8 +78,7 @@ jobs:
       - name: Upload Packer Artifacts
         uses: actions/upload-artifact@v4
         with:
-          # Dynamic name: packer-artifacts-R2025a required for multi-version builds
-          name: packer-artifacts${{ inputs.matlab_version != '' && format('-{0}', inputs.matlab_version) || '' }}
+          name: ${{ inputs.matlab_version }}-packer-artifacts
           path: |
-            ${{ inputs.packer_dir }}/manifest.json
-            ${{ inputs.packer_dir }}/packer-build.log
+            ${{ inputs.packer_dir }}/${{ inputs.matlab_version }}-manifest.json
+            ${{ inputs.packer_dir }}/${{ inputs.matlab_version }}-packer-build.log

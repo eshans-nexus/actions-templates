@@ -52,7 +52,8 @@ jobs:
         uses: eshans-nexus/actions-templates/.github/actions/deploy-cfn@main
         with:
           stack_name: "msa-gen-smoke-test-${{ github.run_id }}-${{ inputs.matlab_version }}"
-          template_artifact: ${{ inputs.template_artifact }}-${{ inputs.matlab_version }}
+          template_artifact: ${{ inputs.matlab_version }}-${{ inputs.template_artifact }}
+          template_filename: "${{ inputs.matlab_version }}-patched-template.json"
           flavor: ${{ inputs.flavor }}
           region: ${{ inputs.region }}
           vpc_id: ${{ secrets.TEST_VPC_ID }}

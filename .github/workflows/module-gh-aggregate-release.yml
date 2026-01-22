@@ -28,44 +28,16 @@ jobs:
         with:
           path: ./all-artifacts
 
-      - name: Aggregate Release Body and Assets
+      - name: Flatten Assets
         run: |
-          echo "# MATLAB Reference Architecture Build Report" > ./final-assets/release_body.md
-          echo "Build Run: ${{ github.run_id }}" >> ./final-assets/release_body.md
-          echo "" >> ./final-assets/release_body.md
-
-          # Iterate through the downloaded artifact folders
-          # Folder structure example: ./all-artifacts/release-info-R2025a/release_metadata.md
+          # The files are already named uniquely (e.g., R2025a-manifest.json)
+          # We just need to pull them out of their artifact folders.
           
-          cd ./all-artifacts
+          cd ./all_artifacts
+          find . -type f -exec cp {} ../release-assets/ \;
           
-          # 1. Process Metadata Files
-          # Look for folders starting with release-info-*
-          for dir in release-info-*; do
-            if [ -d "$dir" ]; then
-              echo "Processing metadata from $dir..."
-              cat "$dir/release_metadata.md" >> ../final-assets/release_body.md
-              echo "" >> ../final-assets/release_body.md
-            fi
-          done
-
-          # 2. Flatten Assets (Templates, Logs)
-          # We want to move actual files to final-assets renaming them with the folder suffix
-          for dir in *; do
-            if [[ -d "$dir" && "$dir" != "release-info-"* ]]; then
-              # E.g., dir = "packer-artifacts-R2025a"
-              # Extract suffix (R2025a) assuming format name-suffix
-              SUFFIX="${dir##*-}"
-              
-              for file in "$dir"/*; do
-                filename=$(basename "$file")
-                # e.g. R2025a-manifest.json
-                cp "$file" "../final-assets/${SUFFIX}-${filename}"
-              done
-            fi
-          done
-          
-          ls -R ../final-assets
+          echo "Final assets for release:"
+          ls -R ../release-assets
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1

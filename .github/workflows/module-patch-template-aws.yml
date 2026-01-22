@@ -26,10 +26,10 @@ jobs:
           sudo apt-get install -y jq
           jq --arg ami "${{ inputs.ami_id }}" \
              '.Parameters.CustomAmiId.Default = ""' \
-             ${{ inputs.template_path }} > patched-template.json
+             ${{ inputs.template_path }} > "${{ inputs.matlab_version }}-patched-template.json"
              
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: patched-template${{ inputs.matlab_version != '' && format('-{0}', inputs.matlab_version) || '' }}
-          path: patched-template.json
+          name: ${{ inputs.matlab_version }}-patched-template
+          path: ${{ inputs.matlab_version }}-patched-template.json

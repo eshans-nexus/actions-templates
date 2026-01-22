@@ -40,8 +40,8 @@ jobs:
     needs: [build, patch]
     uses: eshans-nexus/actions-templates/.github/workflows/module-slsa-attest.yml@main
     with:
-      template_artifact: 'patched-template-${{ inputs.matlab_version }}'
-      packer_artifact: 'packer-artifacts-${{ inputs.matlab_version }}'
+      template_artifact: '${{ inputs.matlab_version }}-patched-template'
+      packer_artifact: '${{ inputs.matlab_version }}-packer-artifacts'
       matlab_version: ${{ inputs.matlab_version }}
 
   smoke-test:
