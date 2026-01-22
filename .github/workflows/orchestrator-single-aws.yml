@@ -61,7 +61,7 @@ jobs:
       version: ${{ inputs.matlab_version }}
       flavor: ${{ inputs.flavor }}
       ami_id: ${{ needs.build.outputs.ami_id }}
-      template_artifact: 'patched-template-${{ inputs.matlab_version }}'
-      packer_artifact: 'packer-artifacts-${{ inputs.matlab_version }}'
+      template_artifact: ${{ inputs.matlab_version }}-patched-template
+      packer_artifact: ${{ inputs.matlab_version }}-packer-artifacts
       matlab_version: ${{ inputs.matlab_version }}
     secrets: inherit
