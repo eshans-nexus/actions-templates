@@ -42,6 +42,7 @@ jobs:
     with:
       template_artifact: 'patched-template-${{ inputs.matlab_version }}'
       packer_artifact: 'packer-artifacts-${{ inputs.matlab_version }}'
+      matlab_version: ${{ inputs.matlab_version }}
 
   smoke-test:
     needs: [build, patch]

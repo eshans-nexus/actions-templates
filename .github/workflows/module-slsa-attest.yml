@@ -9,6 +9,8 @@ on:
       packer_artifact:
         required: true
         type: string
+      matlab_version:
+        type: string
 
 jobs:
   attest:
