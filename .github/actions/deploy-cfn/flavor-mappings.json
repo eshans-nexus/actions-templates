@@ -7,7 +7,7 @@
     "client_ip_param": "ClientIPAddress",
     "defaults": [
       { "ParameterKey": "InstanceType", "ParameterValue": "t3.medium" },
-      { "ParameterKey": "AutoShutdown", "ParameterValue": "After 1 hour" },
+      { "ParameterKey": "AutoShutdown", "ParameterValue": "" },
       { "ParameterKey": "ClientIPAddress", "ParameterValue": "" },
       { "ParameterKey": "Password", "ParameterValue": "MathWorks!1234" },
       { "ParameterKey": "ConfirmPassword", "ParameterValue": "MathWorks!1234" }
