@@ -32,7 +32,8 @@ runs:
         TEMPLATE: ${{ inputs.template_path }}
         AMI_ID: ${{ inputs.ami_id }}
         REGION_MAP: ${{ inputs.region_map }}
-        OUT_NAME: "${{ inputs.matlab_version }}-template.json"
+        STAGE_OUT_NAME: "${{ inputs.matlab_version }}-patched-template.json"
+        RELEASE_OUT_NAME: "${{ inputs.matlab_version }}-template.json"
       run: |
         # 1. Install jq if missing
         if ! command -v jq &> /dev/null; then
@@ -53,7 +54,9 @@ runs:
             echo "Injecting AMI: $AMI_ID"
             jq --arg ami "$AMI_ID" \
                '.Parameters.CustomAmiId.Default = $ami' \
-               "$TEMPLATE" > "$OUT_NAME"
+               "$TEMPLATE" > "$STAGE_OUT_NAME"
+
+            echo "Generated: $STAGE_OUT_NAME"
 
         # 3. Handle 'release' (Region Map injection)
         elif [[ "$MODE" == "release" ]]; then
@@ -70,16 +73,16 @@ runs:
             # We replace the object at .Mappings.RegionMap with the content of the temp file
             jq --slurpfile map region_map_temp.json \
                '.Mappings.RegionMap = $map[0]' \
-               "$TEMPLATE" > "$OUT_NAME"
-               
+               "$TEMPLATE" > "$RELEASE_OUT_NAME"
+
             rm region_map_temp.json
+
+            echo "Generated: $RELEASE_OUT_NAME"
 
         else
             echo "Error: Invalid mode '$MODE'. Use 'stage' or 'release'."
             exit 1
         fi
-
-        echo "Generated: $OUT_NAME"
 
     - name: Upload Artifact
       uses: actions/upload-artifact@v4
