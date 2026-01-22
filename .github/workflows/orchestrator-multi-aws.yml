@@ -93,7 +93,7 @@ jobs:
   release-artifacts:
     needs: create-artifacts
     name: Create Aggregate Release
-    uses: eshans-nexus/actions-templates/.github/workflows/module-gh-release-aggregate.yml@main
+    uses: eshans-nexus/actions-templates/.github/workflows/module-gh-aggregate-release.yml@main
     with:
       release_tag: "Build-${{ github.run_number }}-${{ inputs.flavor }}"
       prerelease: false
