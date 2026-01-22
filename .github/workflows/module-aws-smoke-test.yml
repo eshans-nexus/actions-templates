@@ -28,6 +28,7 @@ on:
 
 jobs:
   smoke-test:
+    name: Run smoke tests
     runs-on: ubuntu-latest
     permissions:
       id-token: write

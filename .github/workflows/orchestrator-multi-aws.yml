@@ -26,6 +26,7 @@ on:
 
 jobs:
   prepare-versions:
+    name: Determine MATLAB versions to build
     runs-on: ubuntu-latest
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
@@ -72,6 +73,7 @@ jobs:
               f.write(f"matrix={json.dumps(versions)}\n")
 
   create-artifacts:
+    name: Run build and test pipeline
     needs: prepare-versions
     name: Process ${{ matrix.version }}
     strategy:
@@ -91,8 +93,8 @@ jobs:
     secrets: inherit
 
   release-artifacts:
+    name: Create Aggregate GH Release
     needs: create-artifacts
-    name: Create Aggregate Release
     uses: eshans-nexus/actions-templates/.github/workflows/module-gh-aggregate-release.yml@main
     with:
       release_tag: "Build-${{ github.run_number }}-${{ inputs.flavor }}"

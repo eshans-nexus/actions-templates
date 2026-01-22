@@ -12,6 +12,7 @@ on:
 
 jobs:
   attest:
+    name: Create attestations
     runs-on: ubuntu-latest
     permissions:
       id-token: write

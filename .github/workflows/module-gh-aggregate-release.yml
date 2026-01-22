@@ -12,6 +12,7 @@ on:
 
 jobs:
   publish:
+    name: Create GH release
     runs-on: ubuntu-latest
     permissions:
       contents: write

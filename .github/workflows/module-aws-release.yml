@@ -25,6 +25,7 @@ on:
 
 jobs:
   prep-release:
+    name: Prepare release artifacts
     runs-on: ubuntu-latest
     permissions:
       id-token: write # Might need for S3/EC2 copy calls

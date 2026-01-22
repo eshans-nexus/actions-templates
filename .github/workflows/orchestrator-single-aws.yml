@@ -24,7 +24,7 @@ on:
 
 jobs:
   build:
-    name: Run packer build (single orch)
+    name: ${{ inputs.artifact_suffix }}
     uses: eshans-nexus/actions-templates/.github/workflows/module-packer-build-aws.yml@main
     with:
       matlab_version: ${{ inputs.matlab_version }}
@@ -35,7 +35,7 @@ jobs:
 
   patch:
     needs: build
-    name: Patch template to use built AMI (single orch)
+    name: ${{ inputs.artifact_suffix }}
     uses: eshans-nexus/actions-templates/.github/workflows/module-patch-template-aws.yml@main
     with:
       template_path: ${{ format('{0}/{1}', format(inputs.template_dir_pattern, inputs.matlab_version), inputs.template_file_name) }}
@@ -44,7 +44,7 @@ jobs:
 
   attest:
     needs: [build, patch]
-    name: Attest builds to ensure authenticity (single orch)
+    name: ${{ inputs.artifact_suffix }}
     uses: eshans-nexus/actions-templates/.github/workflows/module-slsa-attest.yml@main
     with:
       template_artifact: 'patched-template-${{ inputs.artifact_suffix }}'
@@ -52,7 +52,7 @@ jobs:
 
   smoke-test:
     needs: [build, patch]
-    name: Deploy and run smoke tests (single orch)
+    name: ${{ inputs.artifact_suffix }}
     uses: eshans-nexus/actions-templates/.github/workflows/module-aws-smoke-test.yml@main
     with:
       template_artifact: 'patched-template'
@@ -63,6 +63,7 @@ jobs:
 
   prepare-release:
     needs: [build, patch, attest, smoke-test]
+    name: ${{ inputs.artifact_suffix }}
     uses: eshans-nexus/actions-templates/.github/workflows/module-aws-release.yml@main
     with:
       version: ${{ inputs.matlab_version }}
