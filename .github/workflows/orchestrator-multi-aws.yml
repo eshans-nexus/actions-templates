@@ -86,7 +86,7 @@ jobs:
       packer_dir: ${{ inputs.packer_dir }}
       template_dir_pattern: ${{ inputs.template_dir_pattern }}
       template_file_name: ${{ inputs.template_file_name }}
-      skip_build: ${{ inputs.test_mode }}
+      skip_build: ${{ inputs.skip_build }}
     secrets: inherit
 
   release-artifacts:
