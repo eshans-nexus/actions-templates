@@ -19,17 +19,10 @@ jobs:
     name: "${{ inputs.matlab_version }}: Patch template with new AMI"
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      
-      - name: Inject Custom AMI
-        run: |
-          sudo apt-get install -y jq
-          jq --arg ami "${{ inputs.ami_id }}" \
-             '.Parameters.CustomAmiId.Default = ""' \
-             ${{ inputs.template_path }} > "${{ inputs.matlab_version }}-patched-template.json"
-             
-      - name: Upload Artifact
-        uses: actions/upload-artifact@v4
+      - name: Create Stage Template
+        uses: ./.github/actions/create-aws-template
         with:
-          name: ${{ inputs.matlab_version }}-patched-template
-          path: ${{ inputs.matlab_version }}-patched-template.json
+          template_path: ${{ inputs.template_path }}
+          mode: 'stage'
+          matlab_version: ${{ inputs.matlab_version }}
+          ami_id: ${{ inputs.template_path }
