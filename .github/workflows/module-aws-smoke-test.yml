@@ -91,5 +91,5 @@ jobs:
       - name: Cleanup
         if: always()
         run: |
-          aws cloudformation delete-stack --stack-name "msa-gen-smoke-test-${{ github.run_id }}-{{ $inputs.matlab_version }}"
+          aws cloudformation delete-stack --stack-name "msa-gen-smoke-test-${{ github.run_id }}-${{ inputs.matlab_version }}"
           aws ec2 delete-key-pair --key-name ${{ steps.ssh-key.outputs.NAME }}
