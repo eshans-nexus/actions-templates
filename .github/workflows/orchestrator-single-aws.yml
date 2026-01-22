@@ -55,9 +55,10 @@ jobs:
     name: Deploy and run smoke tests
     uses: eshans-nexus/actions-templates/.github/workflows/module-aws-smoke-test.yml@main
     with:
-      template_artifact: 'patched-template-${{ inputs.artifact_suffix }}'
+      template_artifact: 'patched-template'
       region: ${{ needs.build.outputs.region }}
       flavor: ${{ inputs.flavor }}
+      artifact_suffix: ${{ inputs.artifact_suffix }}
     secrets: inherit
 
   prepare-release:

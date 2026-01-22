@@ -42,7 +42,7 @@ jobs:
         if: inputs.test_mode == false
         id: ssh-key
         run: |
-          KEY_NAME="smoke-${{ github.run_id }}-${{ github.run_number }}"
+          KEY_NAME="smoke-${{ github.run_id }}-${{ github.run_number }}-${{ inputs.artifact_suffix }}"
           aws ec2 create-key-pair --key-name $KEY_NAME --query 'KeyMaterial' --output text > private_key.pem
           chmod 600 private_key.pem
           echo "NAME=$KEY_NAME" >> $GITHUB_OUTPUT
@@ -53,7 +53,7 @@ jobs:
         uses: eshans-nexus/actions-templates/.github/actions/deploy-cfn@main
         with:
           stack_name: "msa-gen-smoke-test-${{ github.run_id }}"
-          template_artifact: ${{ inputs.template_artifact }} 
+          template_artifact: ${{ inputs.template_artifact }}-${{ inputs.artifact_suffix }}
           flavor: ${{ inputs.flavor }}
           region: ${{ inputs.region }}
           vpc_id: ${{ secrets.TEST_VPC_ID }}
