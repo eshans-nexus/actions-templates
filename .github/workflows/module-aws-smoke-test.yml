@@ -12,6 +12,9 @@ on:
       region:
         default: 'us-east-1'
         type: string
+      artifact_suffix:
+        required: true
+        type: string
       test_mode:
         default: false
         type: boolean
