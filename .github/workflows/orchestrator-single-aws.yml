@@ -57,6 +57,7 @@ jobs:
     with:
       template_artifact: 'patched-template-${{ inputs.artifact_suffix }}'
       region: ${{ needs.build.outputs.region }}
+      flavor: ${{ inputs.flavor }}
     secrets: inherit
 
   prepare-release:
