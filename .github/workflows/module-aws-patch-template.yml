@@ -19,6 +19,8 @@ jobs:
     name: "${{ inputs.matlab_version }}: Patch template with new AMI"
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
+      
       - name: Create Stage Template
         uses: eshans-nexus/actions-templates/.github/actions/create-aws-template@main
         with:
