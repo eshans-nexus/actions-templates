@@ -61,7 +61,7 @@ jobs:
         working-directory: ${{ inputs.packer_dir }}
         run: |
           mkdir -p .
-          echo "Mock Build Log" > packer-build.log
+          echo "Mock Build Log" > "${{ inputs.matlab_version }}-packer-build.log"
           cat <<EOF > "${{ inputs.matlab_version }}-manifest.json"
           {"builds": [{"artifact_id": "us-east-1:ami-06554a9c16731eeb8"}]}
           EOF
@@ -71,7 +71,7 @@ jobs:
         working-directory: ${{ inputs.packer_dir }}
         run: |
           sudo apt-get install -y jq
-          FULL_ID=$(jq -r '.builds[-1].artifact_id' manifest.json)
+          FULL_ID=$(jq -r '.builds[-1].artifact_id' "${{ inputs.matlab_version }}-manifest.json")
           echo "ami_id=$(echo $FULL_ID | cut -d':' -f2)" >> $GITHUB_OUTPUT
           echo "region=$(echo $FULL_ID | cut -d':' -f1)" >> $GITHUB_OUTPUT
       
