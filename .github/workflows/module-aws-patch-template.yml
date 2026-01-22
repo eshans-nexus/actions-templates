@@ -20,7 +20,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Create Stage Template
-        uses: ./.github/actions/create-aws-template
+        uses: eshans-nexus/actions-templates/.github/actions/deploy-cfn@main
         with:
           template_path: ${{ inputs.template_path }}
           mode: 'stage'
