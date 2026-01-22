@@ -12,12 +12,9 @@ on:
       region:
         default: 'us-east-1'
         type: string
-      artifact_suffix:
+      matlab_version:
         required: true
         type: string
-      test_mode:
-        default: false
-        type: boolean
     secrets:
       AWS_OIDC_ROLE:
         required: true
@@ -43,21 +40,19 @@ jobs:
           aws-region: ${{ inputs.region }}
 
       - name: Create Ephemeral Key
-        if: inputs.test_mode == false
         id: ssh-key
         run: |
-          KEY_NAME="smoke-${{ github.run_id }}-${{ github.run_number }}-${{ inputs.artifact_suffix }}"
+          KEY_NAME="smoke-${{ github.run_id }}-${{ github.run_number }}-${{ inputs.matlab_version }}"
           aws ec2 create-key-pair --key-name $KEY_NAME --query 'KeyMaterial' --output text > private_key.pem
           chmod 600 private_key.pem
           echo "NAME=$KEY_NAME" >> $GITHUB_OUTPUT
 
       - name: Deploy Infrastructure
-        if: inputs.test_mode == false
         id: deploy
         uses: eshans-nexus/actions-templates/.github/actions/deploy-cfn@main
         with:
-          stack_name: "msa-gen-smoke-test-${{ github.run_id }}-${{ inputs.artifact_suffix }}"
-          template_artifact: ${{ inputs.template_artifact }}-${{ inputs.artifact_suffix }}
+          stack_name: "msa-gen-smoke-test-${{ github.run_id }}-${{ inputs.matlab_version }}"
+          template_artifact: ${{ inputs.template_artifact }}-${{ inputs.matlab_version }}
           flavor: ${{ inputs.flavor }}
           region: ${{ inputs.region }}
           vpc_id: ${{ secrets.TEST_VPC_ID }}
@@ -65,7 +60,7 @@ jobs:
           key_name: ${{ steps.ssh-key.outputs.NAME }}
 
       - name: Verify Deployment (Linux)
-        if: inputs.test_mode == false && contains(inputs.flavor, 'linux')
+        if: contains(inputs.flavor, 'linux')
         env:
           OUTPUTS: ${{ steps.deploy.outputs.stack_outputs }}
         run: |
@@ -83,7 +78,7 @@ jobs:
           ssh -i private_key.pem -o StrictHostKeyChecking=no ubuntu@$HOST "uptime"
 
       - name: Verify Deployment (Windows)
-        if: inputs.test_mode == false && contains(inputs.flavor, 'windows')
+        if: contains(inputs.flavor, 'windows')
         env:
           OUTPUTS: ${{ steps.deploy.outputs.stack_outputs }}
         run: |
@@ -93,7 +88,7 @@ jobs:
 
       # --- CLEANUP ---
       - name: Cleanup
-        if: always() && inputs.test_mode == false
+        if: always()
         run: |
           aws cloudformation delete-stack --stack-name "msa-gen-smoke-test-${{ github.run_id }}"
           aws ec2 delete-key-pair --key-name ${{ steps.ssh-key.outputs.NAME }}

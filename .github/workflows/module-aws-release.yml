@@ -18,7 +18,7 @@ on:
       packer_artifact:
         required: true
         type: string
-      artifact_suffix:
+      matlab_version:
         required: false
         default: ""
         type: string
@@ -63,5 +63,5 @@ jobs:
       - name: Upload Release Metadata
         uses: actions/upload-artifact@v4
         with:
-          name: release-info${{ inputs.artifact_suffix != '' && format('-{0}', inputs.artifact_suffix) || '' }}
+          name: release-info${{ inputs.matlab_version != '' && format('-{0}', inputs.matlab_version) || '' }}
           path: ./out/release_metadata.md

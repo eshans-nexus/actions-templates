@@ -88,7 +88,6 @@ jobs:
       template_dir_pattern: ${{ inputs.template_dir_pattern }}
       template_file_name: ${{ inputs.template_file_name }}
       test_mode: ${{ inputs.test_mode }}
-      artifact_suffix: ${{ matrix.version }}
     secrets: inherit
 
   release-artifacts:

@@ -18,58 +18,50 @@ on:
         type: string
       test_mode:
         type: boolean
-      artifact_suffix:
-        required: true
-        type: string
 
 jobs:
   build:
-    name: ${{ inputs.artifact_suffix }}
     uses: eshans-nexus/actions-templates/.github/workflows/module-packer-build-aws.yml@main
     with:
-      matlab_version: ${{ inputs.matlab_version }}
       packer_dir: ${{ inputs.packer_dir }}
       test_mode: ${{ inputs.test_mode }}
-      artifact_suffix: ${{ inputs.artifact_suffix }}
+      matlab_version: ${{ inputs.matlab_version }}
     secrets: inherit
 
   patch:
     needs: build
-    name: ${{ inputs.artifact_suffix }}
     uses: eshans-nexus/actions-templates/.github/workflows/module-patch-template-aws.yml@main
     with:
       template_path: ${{ format('{0}/{1}', format(inputs.template_dir_pattern, inputs.matlab_version), inputs.template_file_name) }}
       ami_id: ${{ needs.build.outputs.ami_id }}
-      artifact_suffix: ${{ inputs.artifact_suffix }}
+      matlab_version: ${{ inputs.matlab_version }}
 
   attest:
     needs: [build, patch]
-    name: ${{ inputs.artifact_suffix }}
     uses: eshans-nexus/actions-templates/.github/workflows/module-slsa-attest.yml@main
     with:
-      template_artifact: 'patched-template-${{ inputs.artifact_suffix }}'
-      packer_artifact: 'packer-artifacts-${{ inputs.artifact_suffix }}'
+      template_artifact: 'patched-template-${{ inputs.matlab_version }}'
+      packer_artifact: 'packer-artifacts-${{ inputs.matlab_version }}'
+      matlab_version: ${{ inputs.matlab_version }}
 
   smoke-test:
     needs: [build, patch]
-    name: ${{ inputs.artifact_suffix }}
     uses: eshans-nexus/actions-templates/.github/workflows/module-aws-smoke-test.yml@main
     with:
       template_artifact: 'patched-template'
       region: ${{ needs.build.outputs.region }}
       flavor: ${{ inputs.flavor }}
-      artifact_suffix: ${{ inputs.artifact_suffix }}
+      matlab_version: ${{ inputs.matlab_version }}
     secrets: inherit
 
   prepare-release:
     needs: [build, patch, attest, smoke-test]
-    name: ${{ inputs.artifact_suffix }}
     uses: eshans-nexus/actions-templates/.github/workflows/module-aws-release.yml@main
     with:
       version: ${{ inputs.matlab_version }}
       flavor: ${{ inputs.flavor }}
       ami_id: ${{ needs.build.outputs.ami_id }}
-      template_artifact: 'patched-template-${{ inputs.artifact_suffix }}'
-      packer_artifact: 'packer-artifacts-${{ inputs.artifact_suffix }}'
-      artifact_suffix: ${{ inputs.artifact_suffix }}
+      template_artifact: 'patched-template-${{ inputs.matlab_version }}'
+      packer_artifact: 'packer-artifacts-${{ inputs.matlab_version }}'
+      matlab_version: ${{ inputs.matlab_version }}
     secrets: inherit

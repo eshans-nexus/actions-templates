@@ -9,7 +9,7 @@ on:
       ami_id:
         required: true
         type: string
-      artifact_suffix:
+      matlab_version:
         required: false
         default: ""
         type: string
@@ -31,5 +31,5 @@ jobs:
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: patched-template${{ inputs.artifact_suffix != '' && format('-{0}', inputs.artifact_suffix) || '' }}
+          name: patched-template${{ inputs.matlab_version != '' && format('-{0}', inputs.matlab_version) || '' }}
           path: patched-template.json
