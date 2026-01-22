@@ -16,7 +16,7 @@ on:
 
 jobs:
   patch:
-    name: Patch template with new AMI
+    name: "${{ inputs.matlab_version }}: Patch template with new AMI"
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

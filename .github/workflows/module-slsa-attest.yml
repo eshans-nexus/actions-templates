@@ -12,7 +12,7 @@ on:
 
 jobs:
   attest:
-    name: Create attestations
+    name: "${{ inputs.matlab_version }}: Create attestations"
     runs-on: ubuntu-latest
     permissions:
       id-token: write

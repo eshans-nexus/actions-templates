@@ -23,7 +23,7 @@ on:
 
 jobs:
   build:
-    name: Packer Build
+    name: "${{ inputs.matlab_version }}: Packer Build"
     runs-on: ubuntu-latest
     permissions:
       id-token: write

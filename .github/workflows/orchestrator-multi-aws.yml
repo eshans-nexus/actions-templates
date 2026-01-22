@@ -74,7 +74,6 @@ jobs:
 
   create-artifacts:
     needs: prepare-versions
-    name: ${{ matrix.version }}
     strategy:
         fail-fast: false
         max-parallel: 5
