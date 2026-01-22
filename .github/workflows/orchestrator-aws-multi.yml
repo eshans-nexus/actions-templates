@@ -79,7 +79,7 @@ jobs:
         max-parallel: 5
         matrix:
           version: ${{ fromJson(needs.prepare-versions.outputs.matrix) }}
-    uses: eshans-nexus/actions-templates/.github/workflows/orchestrator-single-aws.yml@main
+    uses: eshans-nexus/actions-templates/.github/workflows/orchestrator-aws-single.yml@main
     with:
       matlab_version: ${{ matrix.version }}
       flavor: ${{ inputs.flavor }}
@@ -92,7 +92,7 @@ jobs:
   release-artifacts:
     name: Create Aggregate GH Release
     needs: create-artifacts
-    uses: eshans-nexus/actions-templates/.github/workflows/module-gh-aggregate-release.yml@main
+    uses: eshans-nexus/actions-templates/.github/workflows/module-gh-release.yml@main
     with:
       release_tag: "Build-${{ github.run_number }}-${{ inputs.flavor }}"
       prerelease: false

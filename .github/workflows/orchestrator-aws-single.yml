@@ -21,7 +21,7 @@ on:
 
 jobs:
   build:
-    uses: eshans-nexus/actions-templates/.github/workflows/module-packer-build-aws.yml@main
+    uses: eshans-nexus/actions-templates/.github/workflows/module-aws-packer-build.yml@main
     with:
       packer_dir: ${{ inputs.packer_dir }}
       skip_build: ${{ inputs.skip_build }}
@@ -30,7 +30,7 @@ jobs:
 
   patch:
     needs: build
-    uses: eshans-nexus/actions-templates/.github/workflows/module-patch-template-aws.yml@main
+    uses: eshans-nexus/actions-templates/.github/workflows/module-aws-patch-template.yml@main
     with:
       template_path: ${{ format('{0}/{1}', format(inputs.template_dir_pattern, inputs.matlab_version), inputs.template_file_name) }}
       ami_id: ${{ needs.build.outputs.ami_id }}
@@ -38,7 +38,7 @@ jobs:
 
   attest:
     needs: [build, patch]
-    uses: eshans-nexus/actions-templates/.github/workflows/module-slsa-attest.yml@main
+    uses: eshans-nexus/actions-templates/.github/workflows/module-gh-slsa-attest.yml@main
     with:
       template_artifact: '${{ inputs.matlab_version }}-patched-template'
       packer_artifact: '${{ inputs.matlab_version }}-packer-artifacts'

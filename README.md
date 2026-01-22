@@ -54,18 +54,18 @@ The pipeline performs integration testing by provisioning actual AWS resources r
 ## Workflow Modules
 
 ### Module: Packer Build (AWS)
-**File:** `.github/workflows/module-packer-build-aws.yml`
+**File:** `.github/workflows/module-aws-packer-build.yml`
 *   **Function:** Authenticates via OIDC, sets up Packer, and runs the build.
 *   **Test Mode:** Includes a `test_mode` input. When enabled, it skips the actual Packer build and returns a hardcoded mock AMI ID. This allows for rapid testing of the pipeline logic without incurring AWS costs or waiting for image creation.
 *   **Outputs:** Returns the `ami_id` and `region` for downstream jobs.
 
 ### Module: Patch Template
-**File:** `.github/workflows/module-patch-template-aws.yml`
+**File:** `.github/workflows/module-aws-patch-template.yml`
 *   **Function:** Takes the built AMI ID and the source CloudFormation template. It uses `jq` to inject the AMI ID into the template's `CustomAmiId` parameter default value.
 *   **Why:** This creates an immutable artifact. The template deployed during testing and attached to the release is guaranteed to reference the exact AMI built in the previous step.
 
 ### Module: SLSA Attest
-**File:** `.github/workflows/module-slsa-attest.yml`
+**File:** `.github/workflows/module-gh-slsa-attest.yml`
 *   **Function:** Uses `actions/attest-build-provenance` to generate signed attestations for the patched template and build logs.
 *   **Purpose:** Supply chain security. It verifies that the artifacts were built by this specific workflow run on GitHub Actions.
 
