@@ -25,4 +25,4 @@ jobs:
           template_path: ${{ inputs.template_path }}
           mode: 'stage'
           matlab_version: ${{ inputs.matlab_version }}
-          ami_id: ${{ inputs.template_path }
+          ami_id: ${{ inputs.template_path }}
