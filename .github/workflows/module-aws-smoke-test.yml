@@ -3,15 +3,18 @@ name: 'Module: AWS Smoke Test'
 on:
   workflow_call:
     inputs:
-      template_artifact:
-        required: true
-        type: string
-      flavor:
+      ami_id:
         required: true
         type: string
       region:
         default: 'us-east-1'
         type: string
+      flavor:
+        required: true
+        type: string
+      template_file_path:
+        type: string
+        default: "packer/v1/src/metatemplate.json"
       matlab_version:
         required: true
         type: string
@@ -30,8 +33,20 @@ jobs:
     permissions:
       id-token: write
       contents: read
+    env:
+      METATEMPLATE_PATH: "./${{ inputs.template_file_path }}"
+      TEMPLATE_FILENAME: "${{ inputs.matlab_version }}-test-template.json"
+      STACK_NAME: "msa-gen-smoke-test-${{ github.run_id }}-${{ inputs.matlab_version }}"
     steps:
       - uses: actions/checkout@v4
+
+      - name: Generate test template
+        uses: eshans-nexus/actions-templates/.github/actions/create-aws-template@main
+        with:
+          metatemplate_path: ${{ env.METATEMPLATE_PATH }}
+          mode: 'test'
+          ami_id: ${{ inputs.ami_id }}
+          output_filename: ${{ env.TEMPLATE_FILENAME }}
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -51,11 +66,10 @@ jobs:
         id: deploy
         uses: eshans-nexus/actions-templates/.github/actions/deploy-cfn@main
         with:
-          stack_name: "msa-gen-smoke-test-${{ github.run_id }}-${{ inputs.matlab_version }}"
-          template_artifact: ${{ inputs.matlab_version }}-${{ inputs.template_artifact }}
-          template_filename: "${{ inputs.matlab_version }}-patched-template.json"
+          template_path: "./${{ env.TEMPLATE_FILENAME }}"
           flavor: ${{ inputs.flavor }}
           region: ${{ inputs.region }}
+          stack_name: ${{ env.STACK_NAME }}
           vpc_id: ${{ secrets.TEST_VPC_ID }}
           subnet_id: ${{ secrets.TEST_SUBNET_ID }}
           key_name: ${{ steps.ssh-key.outputs.NAME }}
@@ -87,7 +101,6 @@ jobs:
           echo "Checking RDP Port on $HOST..."
           timeout 300 bash -c "until nc -z -v -w5 $HOST 3389; do sleep 15; done"
 
-      # --- CLEANUP ---
       - name: Cleanup
         if: always()
         run: |

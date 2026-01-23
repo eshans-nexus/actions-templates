@@ -20,6 +20,9 @@ on:
       region:
         description: "The region where the AMI was built"
         value: ${{ jobs.build.outputs.region }}
+    secrets:
+      AWS_OIDC_ROLE:
+        required: true
 
 jobs:
   build:

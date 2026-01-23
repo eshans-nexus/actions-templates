@@ -2,17 +2,17 @@ name: 'Create AWS Template'
 description: 'Generates a CloudFormation template for either Stage (Single AMI) or Release (Region Map).'
 
 inputs:
-  template_path:
+  metatemplate_path:
     description: 'Path to the source JSON template'
     required: true
   mode:
-    description: 'Operation mode: "stage" or "release"'
+    description: 'Operation mode: "test" or "release"'
     required: true
-    default: 'stage'
-  matlab_version:
-    description: 'MATLAB version prefix for naming (e.g., R2024a)'
+    default: 'test'
+  output_filename:
+    description: 'Filename for the generated template'
     required: false
-    default: "deployment"
+    default: "template.json"
   # Stage Mode Input
   ami_id:
     description: 'The Single AMI ID (Required if mode is "stage")'
@@ -22,6 +22,7 @@ inputs:
     description: 'JSON object string for RegionMap (Required if mode is "release")'
     required: false
 
+
 runs:
   using: "composite"
   steps:
@@ -29,11 +30,10 @@ runs:
       shell: bash
       env:
         MODE: ${{ inputs.mode }}
-        TEMPLATE: ${{ inputs.template_path }}
+        TEMPLATE: ${{ inputs.metatemplate_path }}
         AMI_ID: ${{ inputs.ami_id }}
         REGION_MAP: ${{ inputs.region_map }}
-        STAGE_OUT_NAME: "${{ inputs.matlab_version }}-patched-template.json"
-        RELEASE_OUT_NAME: "${{ inputs.matlab_version }}-template.json"
+        OUT_NAME: ${{ inputs.output_filename }}
       run: |
         # 1. Install jq if missing
         if ! command -v jq &> /dev/null; then
@@ -54,9 +54,7 @@ runs:
             echo "Injecting AMI: $AMI_ID"
             jq --arg ami "$AMI_ID" \
                '.Parameters.CustomAmiId.Default = $ami' \
-               "$TEMPLATE" > "$STAGE_OUT_NAME"
-
-            echo "Generated: $STAGE_OUT_NAME"
+               "$TEMPLATE" > "$OUT_NAME"
 
         # 3. Handle 'release' (Region Map injection)
         elif [[ "$MODE" == "release" ]]; then
@@ -73,19 +71,19 @@ runs:
             # We replace the object at .Mappings.RegionMap with the content of the temp file
             jq --slurpfile map region_map_temp.json \
                '.Mappings.RegionMap = $map[0]' \
-               "$TEMPLATE" > "$RELEASE_OUT_NAME"
+               "$TEMPLATE" > "$OUT_NAME"
 
             rm region_map_temp.json
-
-            echo "Generated: $RELEASE_OUT_NAME"
 
         else
             echo "Error: Invalid mode '$MODE'. Use 'stage' or 'release'."
             exit 1
         fi
 
+        echo "Generated: $OUT_NAME"
+
     - name: Upload Artifact
       uses: actions/upload-artifact@v4
       with:
-        name: ${{ inputs.matlab_version }}-patched-template
-        path: ${{ inputs.matlab_version }}-patched-template.json
+        name: ${{ inputs.mode }}-templates
+        path: ${{ inputs.output_filename }}

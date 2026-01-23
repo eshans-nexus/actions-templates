@@ -11,10 +11,7 @@ on:
         type: string
       packer_dir:
         type: string
-      template_dir_pattern:
-        default: './releases/{0}' # kept to document correct pattern syntax
-        type: string
-      template_file_name:
+      template_file_path:
         type: string
       skip_build:
         type: boolean
@@ -28,40 +25,25 @@ jobs:
       matlab_version: ${{ inputs.matlab_version }}
     secrets: inherit
 
-  patch:
-    needs: build
-    uses: eshans-nexus/actions-templates/.github/workflows/module-aws-patch-template.yml@main
-    with:
-      template_path: ${{ format('{0}/{1}', format(inputs.template_dir_pattern, inputs.matlab_version), inputs.template_file_name) }}
-      ami_id: ${{ needs.build.outputs.ami_id }}
-      matlab_version: ${{ inputs.matlab_version }}
-
-  attest:
-    needs: [build, patch]
-    uses: eshans-nexus/actions-templates/.github/workflows/module-gh-slsa-attest.yml@main
-    with:
-      template_artifact: '${{ inputs.matlab_version }}-patched-template'
-      packer_artifact: '${{ inputs.matlab_version }}-packer-artifacts'
-      matlab_version: ${{ inputs.matlab_version }}
-
   smoke-test:
-    needs: [build, patch]
+    needs: build
     uses: eshans-nexus/actions-templates/.github/workflows/module-aws-smoke-test.yml@main
     with:
-      template_artifact: 'patched-template'
+      ami_id: ${{ needs.build.outputs.ami_id }}
       region: ${{ needs.build.outputs.region }}
       flavor: ${{ inputs.flavor }}
+      template_file_path: ${{ inputs.template_file_path }}
       matlab_version: ${{ inputs.matlab_version }}
     secrets: inherit
 
-  prepare-release:
-    needs: [build, patch, attest, smoke-test]
+  release:
+    needs: [build, smoke-test]
     uses: eshans-nexus/actions-templates/.github/workflows/module-aws-release.yml@main
     with:
-      version: ${{ inputs.matlab_version }}
-      flavor: ${{ inputs.flavor }}
       ami_id: ${{ needs.build.outputs.ami_id }}
-      template_artifact: ${{ inputs.matlab_version }}-patched-template
-      packer_artifact: ${{ inputs.matlab_version }}-packer-artifacts
+      flavor: ${{ inputs.flavor }}
+      template_file_path: ${{ inputs.template_file_path }}
+      source_region: 'us-east-1'
+      target_regions: 'us-east-1'
       matlab_version: ${{ inputs.matlab_version }}
     secrets: inherit

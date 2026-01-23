@@ -1,0 +1,66 @@
+name: 'Distribute AMI'
+description: 'Copies a source AMI to multiple regions and outputs a CloudFormation RegionMap.'
+inputs:
+  ami_id:
+    description: 'The Source AMI ID'
+    required: true
+  source_region:
+    description: 'The Region where source AMI exists'
+    required: true
+  target_regions:
+    description: 'Comma-separated list of regions (e.g. us-east-2,eu-west-1)'
+    required: true
+  matlab_version:
+    description: 'Used for naming the AMIs'
+    required: true
+  flavor:
+    description: 'Used for naming the AMIs'
+    required: true
+  test_mode:
+    description: 'If true, skips AWS calls and returns mock data'
+    required: false
+    default: 'false'
+
+outputs:
+  region_map_json:
+    description: "JSON string formatted as { RegionMap: { region: { AMI: id } } }"
+    value: ${{ steps.distribute.outputs.region_map_json }}
+
+runs:
+  using: "composite"
+  steps:
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+
+    - name: Install Dependencies
+      shell: bash
+      run: |
+        pip install boto3
+
+    - name: Run Distribution Script
+      id: distribute
+      shell: bash
+      env:
+        # We pass inputs as env vars or args. Using args here.
+        INPUT_AMI: ${{ inputs.ami_id }}
+        INPUT_SRC: ${{ inputs.source_region }}
+        INPUT_DEST: ${{ inputs.target_regions }}
+        INPUT_VER: ${{ inputs.matlab_version }}
+        INPUT_FLAVOR: ${{ inputs.flavor }}
+        INPUT_TEST: ${{ inputs.test_mode }}
+      run: |
+        # Construct flag for test mode
+        TEST_FLAG=""
+        if [ "$INPUT_TEST" == "true" ]; then
+          TEST_FLAG="--test-mode"
+        fi
+
+        python ${{ github.action_path }}/distribute.py \
+          --ami-id "$INPUT_AMI" \
+          --src-region "$INPUT_SRC" \
+          --dest-regions "$INPUT_DEST" \
+          --version "$INPUT_VER" \
+          --flavor "$INPUT_FLAVOR" \
+          $TEST_FLAG

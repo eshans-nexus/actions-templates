@@ -3,25 +3,30 @@ name: 'Module: AWS Release Prep'
 on:
   workflow_call:
     inputs:
-      version:
+      ami_id:
         required: true
         type: string
       flavor:
         required: true
         type: string
-      ami_id:
+      template_file_path:
+        type: string
+        default: "packer/v1/src/metatemplate.json"
+      source_region:
         required: true
         type: string
-      template_artifact:
+        default: 'us-east-1'
+      target_regions:
         required: true
         type: string
-      packer_artifact:
-        required: true
-        type: string
+        default: 'us-east-1'
       matlab_version:
         required: false
         default: ""
         type: string
+    secrets:
+      AWS_OIDC_PROD_ROLE:
+        required: true
 
 jobs:
   prep-release:
@@ -30,38 +35,29 @@ jobs:
     permissions:
       id-token: write # Might need for S3/EC2 copy calls
       contents: read
+    env:
+      METATEMPLATE_PATH: "./${{ inputs.template_file_path }}"
+      TEMPLATE_FILENAME: "${{ inputs.matlab_version }}-release-template.json"
     steps:
-      - uses: actions/checkout@v4
 
-      - name: Download Artifacts (Verification)
-        # We download them just to ensure they exist and ready for next steps (like S3 push)
-        uses: actions/download-artifact@v4
+      - name: Distribute AMI
+        id: distribute_ami
+        uses: eshans-nexus/actions-templates/.github/actions/distribute-ami@main # Adjust path
         with:
-          name: ${{ inputs.template_artifact }}
-          path: ./prep-assets
-      
-      - name: Copy AMI to Production (Placeholder)
-        run: echo "Copying ${{ inputs.ami_id }} to prod regions..."
+          ami_id: ${{ inputs.ami_id }}
+          source_region: ${{ inputs.source_region }}
+          target_regions: ${{ inputs.target_regions }}
+          matlab_version: ${{ inputs.matlab_version }}
+          flavor: ${{ inputs.flavor }}
+          test_mode: true
+
+      - name: Generate Release Template
+        uses: eshans-nexus/actions-templates/.github/actions/create-aws-template@main
+        with:
+          metatemplate_path: ${{ env.METATEMPLATE_PATH }}
+          mode: 'release'
+          ami_id: ${{ inputs.ami_id }}
+          output_filename: ${{ env.TEMPLATE_FILENAME }}
 
       - name: Push Template to Prod S3 (Placeholder)
         run: echo "Pushing ./prep-assets/patched-template.json to s3://prod-bucket/..."
-
-      - name: Generate Release Metadata
-        run: |
-          mkdir -p ./out
-          
-          # Create a markdown fragment for this specific version
-          cat <<EOF > ./out/release_metadata.md
-          ## MATLAB ${{ inputs.version }} (${{ inputs.flavor }})
-          * **AMI ID:** \`${{ inputs.ami_id }}\`
-          * **OS Flavor:** ${{ inputs.flavor }}
-          * **Build Date:** $(date +'%Y-%m-%d')
-          
-          ---
-          EOF
-
-      - name: Upload Release Metadata
-        uses: actions/upload-artifact@v4
-        with:
-          name: release-info${{ inputs.matlab_version != '' && format('-{0}', inputs.matlab_version) || '' }}
-          path: ./out/release_metadata.md
