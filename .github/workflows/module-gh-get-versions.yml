@@ -11,6 +11,7 @@ on:
         description: "Directory to scan for release folders"
         required: false
         default: "./releases"
+        type: string
     outputs:
       matrix:
         description: "The JSON array of versions"
