@@ -1,5 +1,5 @@
 name: 'Create AWS Template'
-description: 'Generates a CloudFormation template for either Stage (Single AMI) or Release (Region Map).'
+description: 'Generates a CloudFormation template for either Test (Single AMI) or Release (Region Map).'
 
 inputs:
   metatemplate_path:
@@ -13,9 +13,9 @@ inputs:
     description: 'Filename for the generated template'
     required: false
     default: "template.json"
-  # Stage Mode Input
+  # Test Mode Input
   ami_id:
-    description: 'The Single AMI ID (Required if mode is "stage")'
+    description: 'The Single AMI ID (Required if mode is "test")'
     required: false
   # Release Mode Input
   region_map:
@@ -43,11 +43,11 @@ runs:
 
         echo "Running in [$MODE] mode..."
 
-        # 2. Handle 'stage' (Single AMI injection)
-        if [[ "$MODE" == "stage" ]]; then
+        # 2. Handle 'test' (Single AMI injection)
+        if [[ "$MODE" == "test" ]]; then
             
             if [[ -z "$AMI_ID" ]]; then
-              echo "Error: 'ami_id' is required for stage mode."
+              echo "Error: 'ami_id' is required for test mode."
               exit 1
             fi
 
@@ -76,7 +76,7 @@ runs:
             rm region_map_temp.json
 
         else
-            echo "Error: Invalid mode '$MODE'. Use 'stage' or 'release'."
+            echo "Error: Invalid mode '$MODE'. Use 'test' or 'release'."
             exit 1
         fi
 

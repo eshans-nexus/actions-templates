@@ -1,0 +1,79 @@
+name: 'Utility: Calculate Version Matrix'
+
+on:
+  workflow_call:
+    inputs:
+      input_versions:
+        description: "User provided list (e.g. R2025a,R2024b). Empty = Auto-detect."
+        required: false
+        type: string
+      search_dir:
+        description: "Directory to scan for release folders"
+        required: false
+        default: "./releases"
+    outputs:
+      matrix:
+        description: "The JSON array of versions"
+        value: ${{ jobs.calculate.outputs.matrix }}
+
+jobs:
+  calculate:
+    name: Generate Matrix
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Calculate Versions
+        id: set-matrix
+        shell: python
+        env:
+          INPUT_STR: ${{ inputs.input_versions }}
+          TARGET_DIR: ${{ inputs.search_dir }}
+        run: |
+          import os, json, re, sys
+
+          input_str = os.environ.get('INPUT_STR', '').strip()
+          target_dir = os.environ.get('TARGET_DIR', './releases')
+          
+          versions = []
+
+          # Ensure target directory exists regardless of mode
+          if not os.path.exists(target_dir):
+              print(f"::error::Directory {target_dir} not found. Cannot validate versions.")
+              exit(1)
+
+          if input_str:
+              # User provided specific list
+              raw_list = [v.strip() for v in input_str.split(',') if v.strip()]
+              
+              # Validate existence
+              for v in raw_list:
+                  v_path = os.path.join(target_dir, v)
+                  if os.path.exists(v_path) and os.path.isdir(v_path):
+                      versions.append(v)
+                  else:
+                      # Option A: Fail immediately (Recommended for manual input)
+                      print(f"::error::Version '{v}' not found in {target_dir}")
+                      exit(1) 
+                      
+                      # Option B: Just skip it (Comment out exit(1) above if you prefer this)
+                      # print(f"::warning::Skipping {v} - directory not found.")
+
+          else:
+              # Auto-detect mode (Pattern matching)
+              pattern = re.compile(r'^R20\d{2}[ab]$')
+              found = []
+              for item in os.listdir(target_dir):
+                  if pattern.match(item) and os.path.isdir(os.path.join(target_dir, item)):
+                      found.append(item)
+              
+              # Sort descending and take top 5
+              found.sort(reverse=True)
+              versions = found[:5]
+
+          print(f"Selected versions: {versions}")
+          
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
+              f.write(f"matrix={json.dumps(versions)}\n")
