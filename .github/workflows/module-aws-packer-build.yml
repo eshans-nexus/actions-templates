@@ -89,5 +89,5 @@ jobs:
         with:
           name: ${{ env.PACKER_ARTIFACT_NAME }}
           path: |
-            "${{ inputs.packer_dir }}/${{ env.PACKER_MANIFEST_FILENAME }}"
-            "${{ inputs.packer_dir }}/${{ env.PACKER_LOG_FILENAME }}"
+            ${{ inputs.packer_dir }}/${{ env.PACKER_MANIFEST_FILENAME }}
+            ${{ inputs.packer_dir }}/${{ env.PACKER_LOG_FILENAME }}

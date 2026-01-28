@@ -71,7 +71,7 @@ jobs:
         id: deploy
         uses: eshans-nexus/actions-templates/.github/actions/deploy-cfn@main
         with:
-          template_path: "./${{ env.TEMPLATE_FILENAME }}"
+          template_path: ./${{ env.TEMPLATE_FILENAME }}
           flavor: ${{ inputs.flavor }}
           region: ${{ inputs.region }}
           stack_name: ${{ env.STACK_NAME }}
