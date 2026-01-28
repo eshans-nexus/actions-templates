@@ -27,6 +27,11 @@ on:
     secrets:
       AWS_OIDC_PROD_ROLE:
         required: true
+env:
+  TEMPLATE_GEN_MODE: 'release'
+  METATEMPLATE_PATH: "./${{ inputs.template_file_path }}"
+  TEMPLATE_FILENAME: "${{ inputs.matlab_version }}-release-template.json"
+  RELEASE_ARTIFACT_NAME: "${{ inputs.matlab_version }}-release-template"
 
 jobs:
   prep-release:
@@ -35,10 +40,6 @@ jobs:
     permissions:
       id-token: write # Might need for S3/EC2 copy calls
       contents: read
-    env:
-      METATEMPLATE_PATH: "./${{ inputs.template_file_path }}"
-      TEMPLATE_FILENAME: "${{ inputs.matlab_version }}-release-template.json"
-      RELEASE_ARTIFACT_NAME: "${{ inputs.matlab_version }}-release-template"
     steps:
 
       - name: Distribute AMI
@@ -56,7 +57,7 @@ jobs:
         uses: eshans-nexus/actions-templates/.github/actions/create-aws-template@main
         with:
           metatemplate_path: ${{ env.METATEMPLATE_PATH }}
-          mode: 'release'
+          mode: ${{ env.TEMPLATE_GEN_MODE }}
           ami_id: ${{ inputs.ami_id }}
           output_filename: ${{ env.TEMPLATE_FILENAME }}
           artifact_name: ${{ env.RELEASE_ARTIFACT_NAME }}

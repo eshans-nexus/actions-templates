@@ -25,6 +25,14 @@ on:
         required: true
       TEST_SUBNET_ID:
         required: true
+env:
+  TEMPLATE_GEN_MODE: 'test'
+  METATEMPLATE_PATH: "./${{ inputs.template_file_path }}"
+  TEMPLATE_FILENAME: "${{ inputs.matlab_version }}-test-template.json"
+  TEST_ARTIFACT_NAME: "${{ inputs.matlab_version }}-test-template"
+  TEMP_SSH_KEY_AWS_NAME: "smoke-${{ github.run_id }}-${{ github.run_number }}-${{ inputs.matlab_version }}"
+  TEMP_SSH_KEY_FILENAME: "private_key.pem"
+  STACK_NAME: "msa-gen-smoke-test-${{ github.run_id }}-${{ inputs.matlab_version }}"
 
 jobs:
   smoke-test:
@@ -33,11 +41,6 @@ jobs:
     permissions:
       id-token: write
       contents: read
-    env:
-      METATEMPLATE_PATH: "./${{ inputs.template_file_path }}"
-      TEMPLATE_FILENAME: "${{ inputs.matlab_version }}-test-template.json"
-      TEST_ARTIFACT_NAME: "${{ inputs.matlab_version }}-test-template"
-      STACK_NAME: "msa-gen-smoke-test-${{ github.run_id }}-${{ inputs.matlab_version }}"
     steps:
       - uses: actions/checkout@v4
 
@@ -45,7 +48,7 @@ jobs:
         uses: eshans-nexus/actions-templates/.github/actions/create-aws-template@main
         with:
           metatemplate_path: ${{ env.METATEMPLATE_PATH }}
-          mode: 'test'
+          mode: ${{ env.TEMPLATE_GEN_MODE }}
           ami_id: ${{ inputs.ami_id }}
           output_filename: ${{ env.TEMPLATE_FILENAME }}
           artifact_name: ${{ env.TEST_ARTIFACT_NAME }}
@@ -59,9 +62,9 @@ jobs:
       - name: Create Ephemeral Key
         id: ssh-key
         run: |
-          KEY_NAME="smoke-${{ github.run_id }}-${{ github.run_number }}-${{ inputs.matlab_version }}"
-          aws ec2 create-key-pair --key-name $KEY_NAME --query 'KeyMaterial' --output text > private_key.pem
-          chmod 600 private_key.pem
+          KEY_NAME=${{ env.TEMP_SSH_KEY_AWS_NAME }}
+          aws ec2 create-key-pair --key-name $KEY_NAME --query 'KeyMaterial' --output text > ${{ env.TEMP_SSH_KEY_FILENAME }}
+          chmod 600 ${{ env.TEMP_SSH_KEY_FILENAME }}
           echo "NAME=$KEY_NAME" >> $GITHUB_OUTPUT
 
       - name: Deploy Infrastructure
@@ -106,5 +109,5 @@ jobs:
       - name: Cleanup
         if: always()
         run: |
-          aws cloudformation delete-stack --stack-name "msa-gen-smoke-test-${{ github.run_id }}-${{ inputs.matlab_version }}"
+          aws cloudformation delete-stack --stack-name ${{ env.STACK_NAME }}
           aws ec2 delete-key-pair --key-name ${{ steps.ssh-key.outputs.NAME }}

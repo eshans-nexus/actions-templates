@@ -23,6 +23,12 @@ on:
     secrets:
       AWS_OIDC_ROLE:
         required: true
+env:
+    PACKER_VERSION: '1.10.2'
+    PACKER_MANIFEST_FILENAME: "${{ inputs.matlab_version }}-manifest.json"
+    PACKER_LOG_FILENAME: "${{ inputs.matlab_version }}-packer-build.log"
+    PACKER_ARTIFACT_NAME: "${{ inputs.matlab_version }}-packer-artifacts"
+    PACKER_RELEASE_CONFIG: "release-config/${{ inputs.matlab_version }}.pkrvars.hcl"
 
 jobs:
   build:
@@ -36,7 +42,7 @@ jobs:
       region: ${{ steps.export.outputs.region }}
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Configure AWS Credentials
         if: inputs.skip_build == false
         uses: aws-actions/configure-aws-credentials@v4
@@ -48,7 +54,7 @@ jobs:
         if: inputs.skip_build == false
         uses: hashicorp/setup-packer@main
         with:
-          version: '1.10.2'
+          version: ${{ env.PACKER_VERSION }}
 
       - name: Run Packer Build
         if: inputs.skip_build == false
@@ -56,16 +62,16 @@ jobs:
         run: |
           packer init .
           packer build -color=false \
-            -var-file="release-config/${{ inputs.matlab_version }}.pkrvars.hcl" \
-            . | tee "${{ inputs.matlab_version }}-packer-build.log"
+            -var-file=${{ env.PACKER_RELEASE_CONFIG }} \
+            . | tee ${{ env.PACKER_LOG_FILENAME }}
 
       - name: Mock Build
         if: inputs.skip_build == true
         working-directory: ${{ inputs.packer_dir }}
         run: |
           mkdir -p .
-          echo "Mock Build Log" > "${{ inputs.matlab_version }}-packer-build.log"
-          cat <<EOF > "${{ inputs.matlab_version }}-manifest.json"
+          echo "Mock Build Log" > ${{ env.PACKER_LOG_FILENAME }}
+          cat <<EOF > ${{ env.PACKER_MANIFEST_FILENAME }}
           {"builds": [{"artifact_id": "us-east-1:ami-06554a9c16731eeb8"}]}
           EOF
 
@@ -74,14 +80,14 @@ jobs:
         working-directory: ${{ inputs.packer_dir }}
         run: |
           sudo apt-get install -y jq
-          FULL_ID=$(jq -r '.builds[-1].artifact_id' "${{ inputs.matlab_version }}-manifest.json")
+          FULL_ID=$(jq -r '.builds[-1].artifact_id' ${{ env.PACKER_MANIFEST_FILENAME }})
           echo "ami_id=$(echo $FULL_ID | cut -d':' -f2)" >> $GITHUB_OUTPUT
           echo "region=$(echo $FULL_ID | cut -d':' -f1)" >> $GITHUB_OUTPUT
       
       - name: Upload Packer Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ inputs.matlab_version }}-packer-artifacts
+          name: ${{ env.PACKER_ARTIFACT_NAME }}
           path: |
-            ${{ inputs.packer_dir }}/${{ inputs.matlab_version }}-manifest.json
-            ${{ inputs.packer_dir }}/${{ inputs.matlab_version }}-packer-build.log
+            "${{ inputs.packer_dir }}/${{ env.PACKER_MANIFEST_FILENAME }}"
+            "${{ inputs.packer_dir }}/${{ env.PACKER_LOG_FILENAME }}"
