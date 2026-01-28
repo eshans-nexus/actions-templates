@@ -17,9 +17,6 @@ on:
         type: boolean
       skip_build:
         type: boolean
-env:
-  AMI_SOURCE_REGION: 'us-east-1'
-  AMI_TARGET_REGIONS: 'us-east-1'
 
 jobs:
   build:
