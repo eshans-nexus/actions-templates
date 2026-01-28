@@ -1,0 +1,106 @@
+name: 'Module: GitHub Release'
+
+on:
+  workflow_call:
+    inputs:
+      files_pattern:
+        description: "Glob pattern for files to release (e.g., 'releases/**/*.json')"
+        required: true
+        type: string
+      release_tag:
+        description: "Unique tag for this release (e.g. R2024b-build-101)"
+        required: true
+        type: string
+      release_title:
+        description: "Title of the release"
+        required: false
+        type: string
+      prerelease:
+        description: "Mark as pre-release"
+        required: false
+        type: boolean
+        default: false
+      generate_attestations:
+        description: "Generate SLSA attestations for these artifacts"
+        required: false
+        type: boolean
+        default: true
+
+jobs:
+  gh-release:
+    name: Publish GH Release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write       # Required to create the release
+      id-token: write       # Required for attestation signing
+      attestations: write   # Required to store attestations
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download All Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: ./artifacts
+
+      - name: Aggregate Files
+        id: files
+        shell: bash
+        run: |
+          # Consolidate downloaded artifacts into a single flatten folder or prepare logic 
+          # to find them based on the input pattern.
+          # Here we assume the artifacts are downloaded into subfolders.
+          
+          echo "Listing downloaded artifacts:"
+          ls -R ./artifacts
+          
+          # Find files matching the input pattern relative to the artifact download path
+          # We move specific files to a 'release_assets' folder to make globbing easier for the release step
+          mkdir -p release_assets
+          
+          # Find files matching the input pattern. 
+          # Note: The input pattern should be loose enough to catch files in the subdirs created by download-artifact
+          find ./artifacts -type f -name "${{ inputs.files_pattern }}" -exec cp {} release_assets/ \;
+          
+          echo "Assets prepared for release:"
+          ls -l release_assets/
+
+      - name: Generate Artifact Attestation
+        if: inputs.generate_attestations
+        id: attest
+        uses: actions/attest-build-provenance@v1
+        with:
+          subject-path: "release_assets/*"
+
+      - name: Generate Body Text
+        id: body
+        shell: bash
+        env:
+          ATTESTATION_URL: ${{ steps.attest.outputs.attestation-url }}
+        run: |
+          # Create a dynamic body text
+          TEXT="## Automated Build Release"
+          TEXT="${TEXT}\n\n**Build Tag:** \`${{ inputs.release_tag }}\`"
+          TEXT="${TEXT}\n**Date:** $(date)"
+          
+          if [[ -n "$ATTESTATION_URL" ]]; then
+             TEXT="${TEXT}\n\n### 🔐 Security Attestations"
+             TEXT="${TEXT}\nThis release includes SLSA provenance attestations verified by GitHub."
+             TEXT="${TEXT}\n- [View Attestation Details]($ATTESTATION_URL)"
+          fi
+          
+          # Handle multiline string for GITHUB_OUTPUT
+          echo "release_body<<EOF" >> $GITHUB_OUTPUT
+          echo -e "$TEXT" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ inputs.release_tag }}
+          name: ${{ inputs.release_title || inputs.release_tag }}
+          body: ${{ steps.body.outputs.release_body }}
+          files: release_assets/*
+          prerelease: ${{ inputs.prerelease }}
+          fail_on_unmatched_files: true
