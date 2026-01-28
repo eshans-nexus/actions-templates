@@ -49,7 +49,7 @@ jobs:
       ami_id: ${{ needs.build.outputs.ami_id }}
       flavor: ${{ inputs.flavor }}
       template_file_path: ${{ inputs.template_file_path }}
-      source_region: ${{ env.AMI_SOURCE_REGION }}
-      target_regions: ${{ env.AMI_TARGET_REGIONS }}
+      source_region: 'us-east-1'
+      target_regions: 'us-east-1'
       matlab_version: ${{ inputs.matlab_version }}
     secrets: inherit
