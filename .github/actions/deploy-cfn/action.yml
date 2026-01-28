@@ -2,19 +2,14 @@ name: 'Deploy CloudFormation Stack'
 description: 'Downloads template, maps parameters, and deploys stack'
 
 inputs:
-  stack_name:
+  template_path:
     required: true
-  template_artifact:
-    description: "Name of the GitHub Artifact containing the template"
-    required: true
-  template_filename:
-    description: "Filename inside the artifact (default: patched-template.json)"
-    required: false
-    default: "patched-template.json"
   flavor:
-    description: "Deployment flavor (e.g., ps-linux)"
+    description: "Deployment flavor (e.g., ps-linux, matlab-linux)"
     required: true
   region:
+    required: true
+  stack_name:
     required: true
   vpc_id:
     required: true
@@ -31,19 +26,11 @@ outputs:
 runs:
   using: "composite"
   steps:
-    - name: Download Template
-      uses: actions/download-artifact@v4
-      with:
-        name: ${{ inputs.template_artifact }}
-        path: ${{ runner.temp }}/cfn-deployment
-
     - name: Validate Inputs
       shell: bash
       run: |
-        if [[ -z "${{ inputs.flavor }}" ]]; then
-          echo "::error::Input 'flavor' is empty. Please check your workflow configuration."
-          exit 1
-        fi
+        # TODO: create a script that reads flavor_mappings.json
+        # and checks if the provided value for flavor is valid
 
     - name: Get IP Addresses
       id: get-ip
@@ -94,7 +81,7 @@ runs:
       shell: bash
       run: |
         # Construct path to the downloaded file
-        TEMPLATE_FILE="${{ runner.temp }}/cfn-deployment/${{ inputs.template_filename }}"
+        TEMPLATE_FILE="${{ inputs.template_path }}"
         
         if [[ ! -f "$TEMPLATE_FILE" ]]; then
           echo "::error::Template file not found at $TEMPLATE_FILE"
