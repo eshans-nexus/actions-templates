@@ -38,6 +38,7 @@ jobs:
     env:
       METATEMPLATE_PATH: "./${{ inputs.template_file_path }}"
       TEMPLATE_FILENAME: "${{ inputs.matlab_version }}-release-template.json"
+      RELEASE_ARTIFACT_NAME: "${{ inputs.matlab_version }}-release-template"
     steps:
 
       - name: Distribute AMI
@@ -58,6 +59,7 @@ jobs:
           mode: 'release'
           ami_id: ${{ inputs.ami_id }}
           output_filename: ${{ env.TEMPLATE_FILENAME }}
+          artifact_name: ${{ env.RELEASE_ARTIFACT_NAME }}
 
       - name: Push Template to Prod S3 (Placeholder)
         run: echo "Pushing ./prep-assets/patched-template.json to s3://prod-bucket/..."

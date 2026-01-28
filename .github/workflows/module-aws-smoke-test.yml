@@ -36,6 +36,7 @@ jobs:
     env:
       METATEMPLATE_PATH: "./${{ inputs.template_file_path }}"
       TEMPLATE_FILENAME: "${{ inputs.matlab_version }}-test-template.json"
+      TEST_ARTIFACT_NAME: "${{ inputs.matlab_version }}-test-template"
       STACK_NAME: "msa-gen-smoke-test-${{ github.run_id }}-${{ inputs.matlab_version }}"
     steps:
       - uses: actions/checkout@v4
@@ -47,6 +48,7 @@ jobs:
           mode: 'test'
           ami_id: ${{ inputs.ami_id }}
           output_filename: ${{ env.TEMPLATE_FILENAME }}
+          artifact_name: ${{ env.TEST_ARTIFACT_NAME }}
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4

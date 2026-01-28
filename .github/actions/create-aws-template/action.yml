@@ -13,6 +13,10 @@ inputs:
     description: 'Filename for the generated template'
     required: false
     default: "template.json"
+  artifact_name:
+    description: 'Name of the artifact to upload to GH'
+    required: false
+    deafult: 'template'
   # Test Mode Input
   ami_id:
     description: 'The Single AMI ID (Required if mode is "test")'
@@ -85,5 +89,5 @@ runs:
     - name: Upload Artifact
       uses: actions/upload-artifact@v4
       with:
-        name: ${{ inputs.mode }}-templates
+        name: ${{ inputs.artifact_name }}
         path: ${{ inputs.output_filename }}
