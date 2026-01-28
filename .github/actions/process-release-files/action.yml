@@ -1,0 +1,34 @@
+name: 'Process Release Files'
+description: 'Generates READMEs, organizes artifacts, and updates root files based on templates.'
+
+inputs:
+  target_versions:
+    description: 'JSON string of versions to process artifacts for'
+    required: true
+  artifact_path:
+    description: 'Path where artifacts are currently located'
+    required: false
+    default: './artifacts'
+
+runs:
+  using: "composite"
+  steps:
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+
+    - name: Install dependencies
+      shell: bash
+      run: pip install jinja2
+
+    - name: Run Processing Script
+      shell: bash
+      env:
+        TARGET_VERSIONS: ${{ inputs.target_versions }}
+        ARTIFACT_PATH: ${{ inputs.artifact_path }}
+      run: |
+        # We execute the script located in THIS action's directory
+        python ${{ github.action_path }}/process.py \
+          --target-versions "$TARGET_VERSIONS" \
+          --artifact-path "$ARTIFACT_PATH"
