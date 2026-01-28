@@ -69,7 +69,7 @@ jobs:
       - name: Generate Artifact Attestation
         if: inputs.generate_attestations
         id: attest
-        uses: actions/attest-build-provenance@v1
+        uses: actions/attest-build-provenance@v3
         with:
           subject-path: "release_assets/*"
 

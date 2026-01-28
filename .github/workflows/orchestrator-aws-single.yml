@@ -28,6 +28,7 @@ jobs:
     secrets: inherit
 
   smoke-test:
+    if: ${{ inputs.is_supplementary_build == false }}
     needs: build
     uses: eshans-nexus/actions-templates/.github/workflows/module-aws-smoke-test.yml@main
     with:
