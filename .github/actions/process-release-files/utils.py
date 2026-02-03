@@ -39,7 +39,7 @@ def create_release_object(target_releases: List[str], dual_repo_url: str) -> Lis
     base_url = dual_repo_url.rstrip('/')
     releases_data = []
     
-    for release in sorted(target_releases):
+    for release in sorted(target_releases, reverse=True):
         try:
             dates = calculate_removal_date(release)
             releases_data.append({
