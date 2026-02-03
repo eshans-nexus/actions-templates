@@ -1,0 +1,56 @@
+name: 'Module: Commit Release Files'
+
+on:
+  workflow_call:
+    inputs:
+      target_versions:
+        description: 'JSON array of versions to process'
+        required: true
+        type: string
+      s3_bucket_url:
+        description: 'Production S3 bucket URL'
+        required: true
+      dual_repo_url:
+        description: 'URL to the sister repository (same offering, different OS)'
+        required: true
+
+jobs:
+  commit-files:
+    name: Update Repo Files
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref }}
+      
+      - name: Download All Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: ./artifacts
+
+      - name: Flatten Artifacts
+        shell: bash
+        run: |
+          # Flatten the artifact structure so the script finds them easily
+          find ./artifacts -name "*-release-template.json" -exec mv {} ./artifacts/ \;
+
+      - name: Generate Release Files
+        uses: eshans-nexus/actions-templates/.github/actions/process-release-files@main
+        with:
+          target_versions: ${{ inputs.target_versions }}
+          artifact_path: './artifacts'
+          s3_bucket_url: ${{ inputs.s3_bucket_url }}
+          dual_repo_url: ${{ inputs.dual_repo_url }}
+
+      - name: Commit and Push
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "Automated update of release artifacts and documentation"
+          # Only commit the specific files we know we touched
+          file_pattern: 'releases/ README.md LICENSE.md permission.md SECURITY.md'
+          branch: 'test-branch-1'
+          create_branch: true

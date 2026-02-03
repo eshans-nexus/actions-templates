@@ -24,6 +24,8 @@ on:
         required: false
         default: ""
         type: string
+      is_supplementary_build:
+        type: boolean
     secrets:
       AWS_OIDC_PROD_ROLE:
         required: true
@@ -35,13 +37,13 @@ env:
 
 jobs:
   prep-release:
+    if: ${{ inputs.is_supplementary_build == false }}
     name: "${{ inputs.matlab_version }}: Prepare release artifacts"
     runs-on: ubuntu-latest
     permissions:
       id-token: write # Might need for S3/EC2 copy calls
       contents: read
     steps:
-
       - name: Distribute AMI
         id: distribute_ami
         uses: eshans-nexus/actions-templates/.github/actions/distribute-ami@main # Adjust path
