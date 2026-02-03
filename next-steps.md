@@ -1,0 +1,5 @@
+- Release title and release tag - should they be able to be set at the top level caller workflow
+- S3 Bucket URL where to store? Also, how to handle this input for non-AWS builds? Make it an optional input with no default value?
+- Dual repo value where to store?
+    - My idea is to store both in a repository variable, so that they can be easily used without changing the code
+    - something like `dual_repo_url: ${{ var.DUAL_REPO_URL }}`

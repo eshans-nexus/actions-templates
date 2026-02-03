@@ -37,7 +37,6 @@ env:
 
 jobs:
   prep-release:
-    if: ${{ inputs.is_supplementary_build == false }}
     runs-on: ubuntu-latest
     permissions:
       id-token: write # Might need for S3/EC2 copy calls
