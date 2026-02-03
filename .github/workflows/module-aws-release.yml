@@ -38,22 +38,21 @@ env:
 jobs:
   prep-release:
     if: ${{ inputs.is_supplementary_build == false }}
-    name: "${{ inputs.matlab_version }}: Prepare release artifacts"
     runs-on: ubuntu-latest
     permissions:
       id-token: write # Might need for S3/EC2 copy calls
       contents: read
     steps:
-      - name: Distribute AMI
-        id: distribute_ami
-        uses: eshans-nexus/actions-templates/.github/actions/distribute-ami@main # Adjust path
-        with:
-          ami_id: ${{ inputs.ami_id }}
-          source_region: ${{ inputs.source_region }}
-          target_regions: ${{ inputs.target_regions }}
-          matlab_version: ${{ inputs.matlab_version }}
-          flavor: ${{ inputs.flavor }}
-          test_mode: true
+      # - name: Distribute AMI
+      #   id: distribute_ami
+      #   uses: eshans-nexus/actions-templates/.github/actions/distribute-ami@main # Adjust path
+      #   with:
+      #     ami_id: ${{ inputs.ami_id }}
+      #     source_region: ${{ inputs.source_region }}
+      #     target_regions: ${{ inputs.target_regions }}
+      #     matlab_version: ${{ inputs.matlab_version }}
+      #     flavor: ${{ inputs.flavor }}
+      #     test_mode: true
 
       - name: Generate Release Template
         uses: eshans-nexus/actions-templates/.github/actions/create-aws-template@main

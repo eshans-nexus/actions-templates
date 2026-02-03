@@ -42,7 +42,7 @@ runs:
         DUAL_REPO_URL: ${{ inputs.dual_repo_url }}
       run: |
         # We execute the script located in THIS action's directory
-        python ${{ github.action_path }}/process.py \
+        python ${{ github.action_path }}/processor.py \
           --target-versions "$TARGET_VERSIONS" \
           --source-path "$SOURCE_PATH" \
           --artifact-path "$ARTIFACT_PATH" \
