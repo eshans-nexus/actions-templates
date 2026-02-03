@@ -35,13 +35,10 @@ jobs:
   publish-release-artifacts:
     name: Create Aggregate GH Release
     uses: eshans-nexus/actions-templates/.github/workflows/module-gh-create-release.yml@main
-    env:
-      RELEASE_TAG: "Build-${{ github.run_number }}" # verify if I can actually use the env block over here
-      RELEASE_TITLE: "Ref Arch Build ${{ github.run_number }}"
     with:
       files_pattern: "*" 
-      release_tag: ${{ env.RELEASE_TAG }}
-      release_title: ${{ env.RELEASE_TITLE }}
+      release_tag: "Build-${{ github.run_number }}"
+      release_title: "Ref Arch Build ${{ github.run_number }}"
       generate_attestations: ${{ inputs.generate_attestations }}
     secrets: inherit
   
