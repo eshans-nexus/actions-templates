@@ -39,7 +39,6 @@ jobs:
         run: |
           # Flatten the artifact structure so the script finds them easily
           find ./artifacts -name "*-release-template.json" -exec mv {} ./artifacts/ \;
-          echo ${{ inputs.target_versions }}
 
       - name: Generate Release Files
         uses: eshans-nexus/actions-templates/.github/actions/process-release-files@main

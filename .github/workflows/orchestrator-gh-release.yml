@@ -22,6 +22,13 @@ on:
         type: boolean
 
 jobs:
+  debug:
+    steps:
+      - name: Flatten Artifacts
+        shell: bash
+        run: |
+          echo ${{ inputs.target_versions }}
+
   commit-release-files:
     # if: ${{ inputs.is_supplementary_build == false }}
     name: Commit release files into repository
