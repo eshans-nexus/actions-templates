@@ -39,6 +39,7 @@ runs:
         REGION_MAP: ${{ inputs.region_map }}
         OUT_NAME: ${{ inputs.output_filename }}
       run: |
+        tree
         # 1. Install jq if missing
         if ! command -v jq &> /dev/null; then
             echo "jq not found, installing..."
