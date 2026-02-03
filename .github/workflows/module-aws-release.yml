@@ -26,9 +26,9 @@ on:
         type: string
       is_supplementary_build:
         type: boolean
-    secrets:
-      AWS_OIDC_PROD_ROLE:
-        required: true
+    # secrets:
+    #   AWS_OIDC_PROD_ROLE:
+    #     required: true
 env:
   TEMPLATE_GEN_MODE: 'release'
   METATEMPLATE_PATH: "./${{ inputs.template_file_path }}"
