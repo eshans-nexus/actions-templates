@@ -10,9 +10,11 @@ on:
       s3_bucket_url:
         description: 'Production S3 bucket URL'
         required: true
+        type: string
       dual_repo_url:
         description: 'URL to the sister repository (same offering, different OS)'
         required: true
+        type: string
 
 jobs:
   commit-files:

@@ -17,27 +17,28 @@ on:
       is_supplementary_build:
         type: boolean
 
-  commit-release-files:
-    # if: ${{ inputs.is_supplementary_build == false }}
-    name: Commit release files into repository
-    uses: eshans-nexus/actions-templates/.github/workflows/module-gh-commit-files.yml@main
-    with: 
-      target_versions: ${{ inputs.target_versions }}
-      s3_bucket_url: ${{ inputs.s3_bucket_url }}
-      dual_repo_url: ${{ inputs.dual_repo_url }}
-    secrets: inherit
+  jobs:
+    commit-release-files:
+      # if: ${{ inputs.is_supplementary_build == false }}
+      name: Commit release files into repository
+      uses: eshans-nexus/actions-templates/.github/workflows/module-gh-commit-files.yml@main
+      with: 
+        target_versions: ${{ inputs.target_versions }}
+        s3_bucket_url: ${{ inputs.s3_bucket_url }}
+        dual_repo_url: ${{ inputs.dual_repo_url }}
+      secrets: inherit
 
-  publish-release-artifacts:
-    name: Create Aggregate GH Release
-    uses: eshans-nexus/actions-templates/.github/workflows/module-gh-create-release.yml@main
-    env:
-      RELEASE_TAG: "Build-${{ github.run_number }}" # verify if I can actually use the env block over here
-      RELEASE_TITLE: "Ref Arch Build ${{ github.run_number }}"
-    with:
-      files_pattern: "*" 
-      release_tag: ${{ env.RELEASE_TAG }}
-      release_title: ${{ env.RELEASE_TITLE }}
-      generate_attestations: ${{ inputs.generate_attestations }}
-    secrets: inherit
+    publish-release-artifacts:
+      name: Create Aggregate GH Release
+      uses: eshans-nexus/actions-templates/.github/workflows/module-gh-create-release.yml@main
+      env:
+        RELEASE_TAG: "Build-${{ github.run_number }}" # verify if I can actually use the env block over here
+        RELEASE_TITLE: "Ref Arch Build ${{ github.run_number }}"
+      with:
+        files_pattern: "*" 
+        release_tag: ${{ env.RELEASE_TAG }}
+        release_title: ${{ env.RELEASE_TITLE }}
+        generate_attestations: ${{ inputs.generate_attestations }}
+      secrets: inherit
 
   
