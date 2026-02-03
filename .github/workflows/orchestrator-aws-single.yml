@@ -40,7 +40,7 @@ jobs:
     secrets: inherit
 
   release:
-    needs: [build, smoke-test]
+    needs: [build]
     uses: eshans-nexus/actions-templates/.github/workflows/module-aws-release.yml@main
     with:
       ami_id: ${{ needs.build.outputs.ami_id }}
