@@ -5,15 +5,19 @@ on:
     inputs:
       target_versions:
         required: true
+        type: string
       files_pattern:
         required: true
         type: string
       generate_attestations:
         default: true
+        type: boolean
       s3_bucket_url:
         required: true
+        type: string
       dual_repo_url:
         required: true
+        type: string
       is_supplementary_build:
         type: boolean
 
