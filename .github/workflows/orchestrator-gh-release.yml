@@ -24,7 +24,7 @@ on:
 jobs:
 
   commit-release-files:
-    # if: ${{ inputs.is_supplementary_build == false }}
+    if: ${{ inputs.is_supplementary_build == false }}
     name: Commit release files into repository
     uses: eshans-nexus/actions-templates/.github/workflows/module-gh-commit-files.yml@main
     with: 

@@ -52,6 +52,7 @@ jobs:
       #     matlab_version: ${{ inputs.matlab_version }}
       #     flavor: ${{ inputs.flavor }}
       #     test_mode: true
+      
       - uses: actions/checkout@v4
       
       - name: Generate Release Template

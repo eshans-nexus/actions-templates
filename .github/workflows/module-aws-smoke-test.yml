@@ -18,8 +18,6 @@ on:
       matlab_version:
         required: true
         type: string
-      is_supplementary_build:
-        type: boolean
     secrets:
       AWS_OIDC_ROLE:
         required: true
@@ -38,7 +36,6 @@ env:
 
 jobs:
   smoke-test:
-    if: ${{ inputs.is_supplementary_build == false }}
     name: "${{ inputs.matlab_version }}: Run smoke tests"
     runs-on: ubuntu-latest
     permissions:
