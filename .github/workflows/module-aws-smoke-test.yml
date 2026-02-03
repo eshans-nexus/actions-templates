@@ -14,7 +14,7 @@ on:
         type: string
       template_file_path:
         type: string
-        default: "packer/v1/src/metatemplate.json"
+        default: "./src/metatemplate.json"
       matlab_version:
         required: true
         type: string

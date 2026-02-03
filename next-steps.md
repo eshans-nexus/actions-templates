@@ -4,3 +4,4 @@
     - My idea is to store both in a repository variable, so that they can be easily used without changing the code
     - something like `dual_repo_url: ${{ var.DUAL_REPO_URL }}`
 - sort out the conditions for running release etc. review inputs for release workflows
+- sort out metatemplate name
