@@ -61,6 +61,7 @@ jobs:
           ami_id: ${{ inputs.ami_id }}
           output_filename: ${{ env.TEMPLATE_FILENAME }}
           artifact_name: ${{ env.RELEASE_ARTIFACT_NAME }}
+          region_map: '{"us-east-1": {"AMI": "ami-0123456789abcdef0"}, "eu-west-1": {"AMI": "ami-0987654321fedcba0"}}'
 
       - name: Push Template to Prod S3 (Placeholder)
         run: echo "Pushing ./prep-assets/patched-template.json to s3://prod-bucket/..."
