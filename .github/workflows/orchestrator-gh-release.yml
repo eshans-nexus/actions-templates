@@ -22,13 +22,6 @@ on:
         type: boolean
 
 jobs:
-  debug:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Flatten Artifacts
-        shell: bash
-        run: |
-          echo ${{ inputs.target_versions }}
 
   commit-release-files:
     # if: ${{ inputs.is_supplementary_build == false }}
