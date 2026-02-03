@@ -54,5 +54,5 @@ jobs:
           commit_message: "Automated update of release artifacts and documentation"
           # Only commit the specific files we know we touched
           file_pattern: 'releases/ README.md LICENSE.md permission.md SECURITY.md'
-          branch: 'test-branch-1'
+          branch: 'test-branch-2'
           create_branch: true
