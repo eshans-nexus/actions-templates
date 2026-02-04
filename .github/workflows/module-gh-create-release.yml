@@ -42,26 +42,32 @@ jobs:
         with:
           path: ./artifacts
 
-      - name: Aggregate Files
+      - name: Archive and Zip Artifacts
         id: files
         shell: bash
         run: |
-          # Consolidate downloaded artifacts into a single flatten folder or prepare logic 
-          # to find them based on the input pattern.
-          # Here we assume the artifacts are downloaded into subfolders.
-          
-          echo "Listing downloaded artifacts:"
-          ls -R ./artifacts
-          
-          # Find files matching the input pattern relative to the artifact download path
-          # We move specific files to a 'release_assets' folder to make globbing easier for the release step
           mkdir -p release_assets
-          
-          # Find files matching the input pattern. 
-          # Note: The input pattern should be loose enough to catch files in the subdirs created by download-artifact
-          find ./artifacts -type f -name "${{ inputs.files_pattern }}" -exec cp {} release_assets/ \;
-          
-          echo "Assets prepared for release:"
+
+          # 1. Flatten artifacts first (move from subfolders to one place)
+          # We assume your filenames are unique like "R2024a-something.json"
+          find ./artifacts -type f -name "${{ inputs.files_pattern }}" -exec mv {} ./artifacts/ \;
+
+          # 2. Identify unique versions based on your naming convention (R20xx[ab])
+          # This regex looks for strings starting with R, followed by 4 digits, ending in a or b
+          VERSIONS=$(ls ./artifacts | grep -oE '^R20[0-9]{2}[ab]' | sort | uniq)
+
+          echo "Found versions: $VERSIONS"
+
+          # 3. Loop through versions and create Zips
+          for VER in $VERSIONS; do
+            echo "Zipping artifacts for $VER..."
+            
+            # Zip all files starting with that version prefix
+            # -j ignores directory paths (junk paths) so the zip is flat
+            zip -j "release_assets/${VER}-artifacts.zip" ./artifacts/${VER}*
+          done
+
+          echo "Prepared Zips:"
           ls -l release_assets/
 
       - name: Generate Artifact Attestation
@@ -69,7 +75,7 @@ jobs:
         id: attest
         uses: actions/attest-build-provenance@v3
         with:
-          subject-path: "release_assets/*"
+          subject-path: "release_assets/*.zip"
 
       - name: Generate Body Text
         id: body
@@ -99,6 +105,6 @@ jobs:
           tag_name: ${{ inputs.release_tag }}
           name: ${{ inputs.release_title || inputs.release_tag }}
           body: ${{ steps.body.outputs.release_body }}
-          files: release_assets/*
+          files: release_assets/*.zip
           prerelease: ${{ inputs.prerelease }}
           fail_on_unmatched_files: true
