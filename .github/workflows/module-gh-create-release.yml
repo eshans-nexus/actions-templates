@@ -45,7 +45,7 @@ jobs:
 
           # 1. Flatten artifacts first (move from subfolders to one place)
           # We assume your filenames are unique like "R2024a-something.json"
-          find ./artifacts -type f -name "${{ inputs.files_pattern }}" -exec mv {} ./artifacts/ \;
+          find ./artifacts -type f -name "${{ inputs.release_files_pattern }}" -exec mv {} ./artifacts/ \;
 
           # 2. Identify unique versions based on your naming convention (R20xx[ab])
           # This regex looks for strings starting with R, followed by 4 digits, ending in a or b
