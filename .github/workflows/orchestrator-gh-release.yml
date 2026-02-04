@@ -57,7 +57,7 @@ jobs:
       release_files_pattern: ${{ inputs.release_files_pattern }} 
       release_tag: ${{ inputs.release_tag }}
       release_title: ${{ inputs.release_title }}
-      prerelease: ${{ inputs.prerelase }}
+      prerelease: ${{ inputs.prerelease }}
       generate_attestations: ${{ inputs.generate_attestations }}
     secrets: inherit
   
