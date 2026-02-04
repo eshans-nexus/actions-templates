@@ -33,6 +33,7 @@ env:
   TEMP_SSH_KEY_AWS_NAME: "smoke-${{ github.run_id }}-${{ github.run_number }}-${{ inputs.matlab_version }}"
   TEMP_SSH_KEY_FILENAME: "private_key.pem"
   STACK_NAME: "msa-gen-smoke-test-${{ inputs.flavor }}-${{ inputs.matlab_version }}-${{ github.run_id }}"
+  TEST_REGION_MAP: '{"${{ inputs.region }}": {"AMI": "${{ inputs.ami_id }}"}}'
 
 jobs:
   smoke-test:
@@ -47,7 +48,7 @@ jobs:
       - name: Generate test template
         uses: eshans-nexus/actions-templates/.github/actions/create-aws-template@main
         with:
-          mode: ${{ env.TEMPLATE_GEN_MODE }}
+          region_map: ${{ env.TEST_REGION_MAP }}
           ami_id: ${{ inputs.ami_id }}
           output_filename: ${{ env.TEMPLATE_FILENAME }}
           artifact_name: ${{ env.TEST_ARTIFACT_NAME }}

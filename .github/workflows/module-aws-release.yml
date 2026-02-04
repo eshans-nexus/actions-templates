@@ -54,7 +54,6 @@ jobs:
       - name: Generate Release Template
         uses: eshans-nexus/actions-templates/.github/actions/create-aws-template@main
         with:
-          mode: ${{ env.TEMPLATE_GEN_MODE }}
           region_map: ${{ steps.distribute_ami.outputs.region_map_json }}
           output_filename: ${{ env.TEMPLATE_FILENAME }}
           artifact_name: ${{ env.RELEASE_ARTIFACT_NAME }}

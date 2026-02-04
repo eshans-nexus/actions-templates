@@ -1,16 +1,10 @@
 name: 'Create AWS Template'
-description: 'Generates a CloudFormation template for either Test (Single AMI) or Release (Region Map).'
+description: 'Generates a CloudFormation template by injecting a RegionMap.'
 
 inputs:
-  mode:
-    description: 'Operation mode: "test" or "release"'
-    required: true
-  ami_id:
-    description: 'The Single AMI ID (Required if mode is "test")'
-    required: false
   region_map:
-    description: 'JSON object string for RegionMap (Required if mode is "release")'
-    required: false
+    description: 'JSON object string for RegionMap'
+    required: true
   output_filename:
     description: 'Filename for the generated template'
     required: true
@@ -27,9 +21,7 @@ runs:
     - name: Generate Template
       shell: bash
       env:
-        MODE: ${{ inputs.mode }}
         TEMPLATE: ${{ inputs.metatemplate_file_path }}
-        AMI_ID: ${{ inputs.ami_id }}
         REGION_MAP: ${{ inputs.region_map }}
         OUT_NAME: ${{ inputs.output_filename }}
       run: |
@@ -39,44 +31,18 @@ runs:
             sudo apt-get update && sudo apt-get install -y jq
         fi
 
-        echo "Running in [$MODE] mode..."
+        echo "Injecting Region Map into template..."
 
-        # 2. Handle 'test' (Single AMI injection)
-        if [[ "$MODE" == "test" ]]; then
-            
-            if [[ -z "$AMI_ID" ]]; then
-              echo "Error: 'ami_id' is required for test mode."
-              exit 1
-            fi
+        # 2. Write input JSON string to temp file for safe handling
+        echo "$REGION_MAP" > region_map_temp.json
 
-            echo "Injecting AMI: $AMI_ID"
-            jq --arg ami "$AMI_ID" \
-               '.Parameters.CustomAmiId.Default = $ami' \
-               "$TEMPLATE" > "$OUT_NAME"
+        # 3. Inject the map into .Mappings.RegionMap
+        # This replaces whatever is currently in Mappings.RegionMap
+        jq --slurpfile map region_map_temp.json \
+           '.Mappings.RegionMap = $map[0]' \
+           "$TEMPLATE" > "$OUT_NAME"
 
-        # 3. Handle 'release' (Region Map injection)
-        elif [[ "$MODE" == "release" ]]; then
-
-            if [[ -z "$REGION_MAP" ]]; then
-              echo "Error: 'region_map' is required for release mode."
-              exit 1
-            fi
-
-            echo "Injecting Region Map..."
-            # We write the input JSON string to a temporary file to handle quoting safely
-            echo "$REGION_MAP" > region_map_temp.json
-
-            # We replace the object at .Mappings.RegionMap with the content of the temp file
-            jq --slurpfile map region_map_temp.json \
-               '.Mappings.RegionMap = $map[0]' \
-               "$TEMPLATE" > "$OUT_NAME"
-
-            rm region_map_temp.json
-
-        else
-            echo "Error: Invalid mode '$MODE'. Use 'test' or 'release'."
-            exit 1
-        fi
+        rm region_map_temp.json
 
         echo "Generated: $OUT_NAME"
 
