@@ -54,7 +54,7 @@ jobs:
       flavor: ${{ inputs.flavor }}
       matlab_version: ${{ inputs.matlab_version }}
       source_region: ${{ needs.build.outputs.region }}
-      target_regions: ${{ var.TARGET_REGIONS }}
+      target_regions: ${{ vars.TARGET_REGIONS }}
       metatemplate_file_path: ${{ inputs.metatemplate_file_path }}
       is_supplementary_build: ${{ inputs.is_supplementary_build }}
     secrets: inherit
