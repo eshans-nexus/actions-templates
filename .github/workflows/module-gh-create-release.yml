@@ -3,25 +3,20 @@ name: 'Module: GitHub Release'
 on:
   workflow_call:
     inputs:
-      files_pattern:
-        description: "Glob pattern for files to release (e.g., 'releases/**/*.json')"
+      release_files_pattern:
         required: true
         type: string
       release_tag:
-        description: "Unique tag for this release (e.g. R2024b-build-101)"
         required: true
         type: string
       release_title:
-        description: "Title of the release"
-        required: false
+        required: true
         type: string
       prerelease:
-        description: "Mark as pre-release"
-        required: false
+        required: true
         type: boolean
       generate_attestations:
-        description: "Generate SLSA attestations for these artifacts"
-        required: false
+        required: true
         type: boolean
 
 jobs:

@@ -35,6 +35,7 @@ jobs:
     secrets: inherit
 
   smoke-test:
+    if: ${{ inputs.is_supplementary_build == false }}
     needs: build
     uses: eshans-nexus/actions-templates/.github/workflows/module-aws-smoke-test.yml@main
     with:
@@ -46,8 +47,7 @@ jobs:
     secrets: inherit
 
   release:
-    if: ${{ inputs.is_supplementary_build == false }}
-    needs: [build, smoke-test]
+    needs: [build]
     uses: eshans-nexus/actions-templates/.github/workflows/module-aws-release.yml@main
     with:
       ami_id: ${{ needs.build.outputs.ami_id }}

@@ -4,15 +4,18 @@ on:
   workflow_call:
     inputs:
       target_versions:
-        description: 'JSON array of versions to process'
         required: true
         type: string
       s3_bucket_url:
-        description: 'Production S3 bucket URL'
         required: true
         type: string
       dual_repo_url:
-        description: 'URL to the sister repository (same offering, different OS)'
+        required: true
+        type: string
+      artifacts_path:
+        required: true
+        type: string
+      release_template_name_pattern:
         required: true
         type: string
 
@@ -32,19 +35,19 @@ jobs:
       - name: Download All Artifacts
         uses: actions/download-artifact@v4
         with:
-          path: ./artifacts
+          path: ${{ inputs.artifacts_path }}
 
       - name: Flatten Artifacts
         shell: bash
         run: |
           # Flatten the artifact structure so the script finds them easily
-          find ./artifacts -name "*-release-template.json" -exec mv {} ./artifacts/ \;
+          find ${{ inputs.artifacts_path }} -name "${{ inputs.release_template_name_pattern }}" -exec mv {} ${{ inputs.artifacts_path }}/ \;
 
       - name: Generate Release Files
         uses: eshans-nexus/actions-templates/.github/actions/process-release-files@main
         with:
           target_versions: ${{ inputs.target_versions }}
-          artifact_path: './artifacts'
+          artifact_path: '${{ inputs.artifacts_path }}'
           s3_bucket_url: ${{ inputs.s3_bucket_url }}
           dual_repo_url: ${{ inputs.dual_repo_url }}
 
@@ -54,5 +57,7 @@ jobs:
           commit_message: "Automated update of release artifacts and documentation"
           # Only commit the specific files we know we touched
           file_pattern: 'releases/ README.md LICENSE.md permission.md SECURITY.md'
-          branch: 'test-branch-2'
+          # normally we want to commit to main and release
+          # but this is just here for testing
+          branch: 'test-branch-${{ github.run_number }}'
           create_branch: true
