@@ -2,30 +2,24 @@ name: 'Create AWS Template'
 description: 'Generates a CloudFormation template for either Test (Single AMI) or Release (Region Map).'
 
 inputs:
-  metatemplate_path:
-    description: 'Path to the source JSON template'
-    required: true
   mode:
     description: 'Operation mode: "test" or "release"'
     required: true
-    default: 'test'
-  output_filename:
-    description: 'Filename for the generated template'
-    required: false
-    default: "template.json"
-  artifact_name:
-    description: 'Name of the artifact to upload to GH'
-    required: false
-    deafult: 'template'
-  # Test Mode Input
   ami_id:
     description: 'The Single AMI ID (Required if mode is "test")'
     required: false
-  # Release Mode Input
   region_map:
     description: 'JSON object string for RegionMap (Required if mode is "release")'
     required: false
-
+  output_filename:
+    description: 'Filename for the generated template'
+    required: true
+  artifact_name:
+    description: 'Name of the artifact to upload to GH'
+    required: true   
+  metatemplate_file_path:
+    description: 'Path to the source JSON meta-template file'
+    required: true
 
 runs:
   using: "composite"
@@ -34,7 +28,7 @@ runs:
       shell: bash
       env:
         MODE: ${{ inputs.mode }}
-        TEMPLATE: ${{ inputs.metatemplate_path }}
+        TEMPLATE: ${{ inputs.metatemplate_file_path }}
         AMI_ID: ${{ inputs.ami_id }}
         REGION_MAP: ${{ inputs.region_map }}
         OUT_NAME: ${{ inputs.output_filename }}

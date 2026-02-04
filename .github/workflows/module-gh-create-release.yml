@@ -19,12 +19,10 @@ on:
         description: "Mark as pre-release"
         required: false
         type: boolean
-        default: false
       generate_attestations:
         description: "Generate SLSA attestations for these artifacts"
         required: false
         type: boolean
-        default: true
 
 jobs:
   gh-release:

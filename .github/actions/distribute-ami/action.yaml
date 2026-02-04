@@ -19,7 +19,7 @@ inputs:
   test_mode:
     description: 'If true, skips AWS calls and returns mock data'
     required: false
-    default: 'false'
+    default: true
 
 outputs:
   region_map_json:

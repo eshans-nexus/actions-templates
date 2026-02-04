@@ -6,16 +6,16 @@ on:
       ami_id:
         required: true
         type: string
-      region:
-        default: 'us-east-1'
-        type: string
       flavor:
         required: true
         type: string
-      template_file_path:
-        type: string
-        default: "./src/metatemplate.json"
       matlab_version:
+        required: true
+        type: string
+      region:
+        required: true
+        type: string
+      metatemplate_file_path:
         required: true
         type: string
     secrets:
@@ -27,10 +27,10 @@ on:
         required: true
 env:
   TEMPLATE_GEN_MODE: 'test'
-  METATEMPLATE_PATH: "./${{ inputs.template_file_path }}"
+  METATEMPLATE_PATH: "./${{ inputs.metatemplate_file_path }}"
   TEMPLATE_FILENAME: "${{ inputs.matlab_version }}-test-template.json"
   TEST_ARTIFACT_NAME: "${{ inputs.matlab_version }}-test-template"
-  TEMP_SSH_KEY_AWS_NAME: "smoke-${{ github.run_id }}-${{ github.run_number }}-${{ inputs.matlab_version }}"
+  TEMP_SSH_KEY_AWS_NAME: "smoke-test-${{ inputs.flavor }}-${{ inputs.matlab_version }}-${{ github.run_id }}-${{ github.run_number }}"
   TEMP_SSH_KEY_FILENAME: "private_key.pem"
   STACK_NAME: "msa-gen-smoke-test-${{ github.run_id }}-${{ inputs.matlab_version }}"
 
@@ -47,11 +47,11 @@ jobs:
       - name: Generate test template
         uses: eshans-nexus/actions-templates/.github/actions/create-aws-template@main
         with:
-          metatemplate_path: ${{ env.METATEMPLATE_PATH }}
           mode: ${{ env.TEMPLATE_GEN_MODE }}
           ami_id: ${{ inputs.ami_id }}
           output_filename: ${{ env.TEMPLATE_FILENAME }}
           artifact_name: ${{ env.TEST_ARTIFACT_NAME }}
+          metatemplate_file_path: ${{ env.METATEMPLATE_PATH }}
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -71,7 +71,7 @@ jobs:
         id: deploy
         uses: eshans-nexus/actions-templates/.github/actions/deploy-cfn@main
         with:
-          template_path: ./${{ env.TEMPLATE_FILENAME }}
+          template_file_path: ./${{ env.TEMPLATE_FILENAME }}
           flavor: ${{ inputs.flavor }}
           region: ${{ inputs.region }}
           stack_name: ${{ env.STACK_NAME }}

@@ -9,22 +9,29 @@ on:
       flavor:
         required: true
         type: string
-      packer_dir:
-        type: string
-      template_file_path:
-        type: string
       is_supplementary_build:
+        required: true
         type: boolean
+      packer_dir:
+        required: false
+        type: string
+        default: 'packer/v1'
+      metatemplate_file_path:
+        required: false
+        type: string
+        default: 'src/meta-template.json'
       skip_build:
+        required: true
         type: boolean
+        default: false
 
 jobs:
   build:
     uses: eshans-nexus/actions-templates/.github/workflows/module-aws-packer-build.yml@main
     with:
-      packer_dir: ${{ inputs.packer_dir }}
-      skip_build: ${{ inputs.skip_build }}
       matlab_version: ${{ inputs.matlab_version }}
+      skip_build: ${{ inputs.skip_build }}
+      packer_dir: ${{ inputs.packer_dir }}
     secrets: inherit
 
   smoke-test:
@@ -32,10 +39,10 @@ jobs:
     uses: eshans-nexus/actions-templates/.github/workflows/module-aws-smoke-test.yml@main
     with:
       ami_id: ${{ needs.build.outputs.ami_id }}
-      region: ${{ needs.build.outputs.region }}
       flavor: ${{ inputs.flavor }}
-      template_file_path: ${{ inputs.template_file_path }}
       matlab_version: ${{ inputs.matlab_version }}
+      region: ${{ needs.build.outputs.region }}
+      metatemplate_file_path: ${{ inputs.metatemplate_file_path }}
     secrets: inherit
 
   release:
@@ -45,8 +52,9 @@ jobs:
     with:
       ami_id: ${{ needs.build.outputs.ami_id }}
       flavor: ${{ inputs.flavor }}
-      template_file_path: ${{ inputs.template_file_path }}
-      source_region: 'us-east-1'
-      target_regions: 'us-east-1'
       matlab_version: ${{ inputs.matlab_version }}
+      source_region: ${{ needs.build.outputs.region }}
+      target_regions: ${{ var.TARGET_REGIONS }}
+      metatemplate_file_path: ${{ inputs.metatemplate_file_path }}
+      is_supplementary_build: ${{ inputs.is_supplementary_build }}
     secrets: inherit

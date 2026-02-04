@@ -2,7 +2,7 @@ name: 'Deploy CloudFormation Stack'
 description: 'Downloads template, maps parameters, and deploys stack'
 
 inputs:
-  template_path:
+  template_file_path:
     required: true
   flavor:
     description: "Deployment flavor (e.g., ps-linux, matlab-linux)"
@@ -81,7 +81,7 @@ runs:
       shell: bash
       run: |
         # Construct path to the downloaded file
-        TEMPLATE_FILE="${{ inputs.template_path }}"
+        TEMPLATE_FILE="${{ inputs.template_file_path }}"
         
         if [[ ! -f "$TEMPLATE_FILE" ]]; then
           echo "::error::Template file not found at $TEMPLATE_FILE"

@@ -9,20 +9,16 @@ on:
       flavor:
         required: true
         type: string
-      template_file_path:
+      matlab_version:
+        required: false
         type: string
-        default: "./src/metatemplate.json"
       source_region:
         required: true
         type: string
-        default: 'us-east-1'
       target_regions:
         required: true
         type: string
-        default: 'us-east-1'
-      matlab_version:
-        required: false
-        default: ""
+      metatemplate_file_path:
         type: string
       is_supplementary_build:
         type: boolean
@@ -31,7 +27,7 @@ on:
     #     required: true
 env:
   TEMPLATE_GEN_MODE: 'release'
-  METATEMPLATE_PATH: "./${{ inputs.template_file_path }}"
+  METATEMPLATE_PATH: "./${{ inputs.metatemplate_file_path }}"
   TEMPLATE_FILENAME: "${{ inputs.matlab_version }}-release-template.json"
   RELEASE_ARTIFACT_NAME: "${{ inputs.matlab_version }}-release-template"
 
@@ -42,28 +38,27 @@ jobs:
       id-token: write # Might need for S3/EC2 copy calls
       contents: read
     steps:
-      # - name: Distribute AMI
-      #   id: distribute_ami
-      #   uses: eshans-nexus/actions-templates/.github/actions/distribute-ami@main # Adjust path
-      #   with:
-      #     ami_id: ${{ inputs.ami_id }}
-      #     source_region: ${{ inputs.source_region }}
-      #     target_regions: ${{ inputs.target_regions }}
-      #     matlab_version: ${{ inputs.matlab_version }}
-      #     flavor: ${{ inputs.flavor }}
-      #     test_mode: true
+      - name: Distribute AMI
+        id: distribute_ami
+        uses: eshans-nexus/actions-templates/.github/actions/distribute-ami@main # Adjust path
+        with:
+          ami_id: ${{ inputs.ami_id }}
+          source_region: ${{ inputs.source_region }}
+          target_regions: ${{ inputs.target_regions }}
+          matlab_version: ${{ inputs.matlab_version }}
+          flavor: ${{ inputs.flavor }}
+          test_mode: true
       
       - uses: actions/checkout@v4
       
       - name: Generate Release Template
         uses: eshans-nexus/actions-templates/.github/actions/create-aws-template@main
         with:
-          metatemplate_path: ${{ env.METATEMPLATE_PATH }}
           mode: ${{ env.TEMPLATE_GEN_MODE }}
-          ami_id: ${{ inputs.ami_id }}
+          region_map: ${{ steps.distribute_ami.outputs.region_map_json }}
           output_filename: ${{ env.TEMPLATE_FILENAME }}
           artifact_name: ${{ env.RELEASE_ARTIFACT_NAME }}
-          region_map: '{"us-east-1": {"AMI": "ami-0123456789abcdef0"}, "eu-west-1": {"AMI": "ami-0987654321fedcba0"}}'
+          metatemplate_file_path: ${{ env.METATEMPLATE_PATH }}
 
       - name: Push Template to Prod S3 (Placeholder)
         run: echo "Pushing ./prep-assets/patched-template.json to s3://prod-bucket/..."

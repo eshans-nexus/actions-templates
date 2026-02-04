@@ -4,14 +4,12 @@ on:
   workflow_call:
     inputs:
       packer_dir:
-        default: './packer/v1'
         type: string
       matlab_version:
         required: true
         type: string
       skip_build:
         description: 'Mock the build for testing'
-        default: false
         type: boolean
     outputs:
       ami_id:
