@@ -52,6 +52,7 @@ jobs:
           VERSIONS=$(ls ./artifacts | grep -oE '^R20[0-9]{2}[ab]' | sort | uniq)
 
           echo "Found versions: $VERSIONS"
+          ls artifacts
 
           # 3. Loop through versions and create Zips
           for VER in $VERSIONS; do
