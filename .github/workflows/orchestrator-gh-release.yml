@@ -27,7 +27,7 @@ on:
       release_title:
         default: "Ref Arch Build ${{ github.run_number }}"
         type: string
-      prerelase:
+      prerelease:
         default: false
         type: boolean
       generate_attestations:
@@ -46,6 +46,8 @@ jobs:
       target_versions: ${{ inputs.target_versions }}
       s3_bucket_url: ${{ inputs.s3_bucket_url }}
       dual_repo_url: ${{ inputs.dual_repo_url }}
+      artifacts_path: ${{ inputs.artifacts_path }}
+      release_template_name_pattern: ${{ inputs.release_template_name_pattern }}
     secrets: inherit
 
   publish-release-artifacts:
@@ -55,6 +57,7 @@ jobs:
       release_files_pattern: ${{ inputs.release_files_pattern }} 
       release_tag: ${{ inputs.release_tag }}
       release_title: ${{ inputs.release_title }}
+      prerelease: ${{ inputs.prerelase }}
       generate_attestations: ${{ inputs.generate_attestations }}
     secrets: inherit
   
