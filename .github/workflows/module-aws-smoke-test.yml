@@ -30,9 +30,9 @@ env:
   METATEMPLATE_PATH: "./${{ inputs.metatemplate_file_path }}"
   TEMPLATE_FILENAME: "${{ inputs.matlab_version }}-test-template.json"
   TEST_ARTIFACT_NAME: "${{ inputs.matlab_version }}-test-template"
-  TEMP_SSH_KEY_AWS_NAME: "smoke-test-${{ inputs.flavor }}-${{ inputs.matlab_version }}-${{ github.run_id }}-${{ github.run_number }}"
+  TEMP_SSH_KEY_AWS_NAME: "smoke-${{ github.run_id }}-${{ github.run_number }}-${{ inputs.matlab_version }}"
   TEMP_SSH_KEY_FILENAME: "private_key.pem"
-  STACK_NAME: "msa-gen-smoke-test-${{ github.run_id }}-${{ inputs.matlab_version }}"
+  STACK_NAME: "msa-gen-smoke-test-${{ inputs.flavor }}-${{ inputs.matlab_version }}-${{ github.run_id }}"
 
 jobs:
   smoke-test:
