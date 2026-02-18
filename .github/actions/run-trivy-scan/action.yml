@@ -1,0 +1,118 @@
+name: 'Run Trivy Scan'
+description: 'Generic action to install and run Trivy via SSH on a target host.'
+
+inputs:
+  hostname:
+    description: 'IP or DNS of the target machine'
+    required: true
+  username:
+    description: 'SSH Username (e.g. ubuntu, Administrator)'
+    required: true
+  ssh_key_path:
+    description: 'Path to the private SSH key file'
+    required: true
+  os_type:
+    description: 'Operating System: "linux" or "windows"'
+    required: true
+  # Optional context for the report header
+  asset_name:
+    description: 'Name of asset being scanned (e.g. AMI ID, Image Name)'
+    required: false
+    default: 'Target Asset'
+
+runs:
+  using: "composite"
+  steps:
+    - name: Add Host to Known Hosts
+      shell: bash
+      run: |
+        ssh-keyscan -H ${{ inputs.hostname }} >> ~/.ssh/known_hosts || true
+
+    # =========================================
+    # LINUX EXECUTION
+    # =========================================
+    - name: Scan (Linux)
+      if: inputs.os_type == 'linux'
+      shell: bash
+      env:
+        HOST: ${{ inputs.hostname }}
+        USER: ${{ inputs.username }}
+        KEY: ${{ inputs.ssh_key_path }}
+      run: |
+        # 1. Install
+        ssh -i "$KEY" -o StrictHostKeyChecking=no $USER@$HOST \
+          "curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sudo sh -s -- -b /usr/local/bin"
+
+        # 2. Run & Capture
+        ssh -i "$KEY" -o StrictHostKeyChecking=no $USER@$HOST \
+          "sudo trivy fs / --scanners vuln --severity HIGH,CRITICAL --ignore-unfixed --format json" > report.json
+
+    # =========================================
+    # WINDOWS EXECUTION
+    # =========================================
+    - name: Scan (Windows)
+      if: inputs.os_type == 'windows'
+      shell: bash
+      env:
+        HOST: ${{ inputs.hostname }}
+        USER: ${{ inputs.username }}
+        KEY: ${{ inputs.ssh_key_path }}
+      run: |
+        # PowerShell script to download, unzip, scan to file, then cat the file
+        # We output to a file on the VM first to prevent download logs mixing with JSON output
+        PS_CMD='
+        $ErrorActionPreference = "Stop";
+        $ProgressPreference = "SilentlyContinue";
+        
+        $Url = "https://github.com/aquasecurity/trivy/releases/download/v0.49.1/trivy_0.49.1_windows-64bit.zip";
+        $Zip = "C:\trivy.zip";
+        $Dest = "C:\trivy";
+        
+        # Download and Unzip
+        [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12;
+        if (-not (Test-Path $Dest)) {
+            Invoke-WebRequest -Uri $Url -OutFile $Zip;
+            Expand-Archive -Path $Zip -DestinationPath $Dest -Force;
+        }
+
+        # Run Scan
+        & C:\trivy\trivy.exe fs C:\ --scanners vuln --severity HIGH,CRITICAL --ignore-unfixed --format json > C:\scan_result.json;
+        
+        # Output content
+        Get-Content C:\scan_result.json;
+        '
+
+        # Execute via SSH
+        ssh -i "$KEY" -o StrictHostKeyChecking=no $USER@$HOST "powershell -Command -" <<EOF > report.json
+        $PS_CMD
+        EOF
+
+    # =========================================
+    # REPORTING (Shared)
+    # =========================================
+    - name: Validate Report
+      shell: bash
+      run: |
+        if [ ! -s report.json ]; then
+          echo "::error::Trivy report is empty or failed to generate."
+          exit 1
+        fi
+
+    - name: Generate Markdown Summary
+      shell: bash
+      run: |
+        jq -r '           
+          if .Results then
+            "| Package | Severity | Installed | Fixed In | CVE |",
+            "|:---|:---|:---|:---|:---|",
+            (.Results[] | .Vulnerabilities[]? | "| \(.PkgName) | \(.Severity) | \(.InstalledVersion) | \(.FixedVersion) | \(.VulnerabilityID) |")
+          else
+            "No High/Critical vulnerabilities found."
+          end
+        ' report.json > report.md
+        
+        echo "## 🛡️ Trivy Security Scan Results" >> $GITHUB_STEP_SUMMARY
+        echo " Asset: \`${{ inputs.asset_name }}\`" >> $GITHUB_STEP_SUMMARY
+        echo " OS: ${{ inputs.os_type }}" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        cat report.md >> $GITHUB_STEP_SUMMARY

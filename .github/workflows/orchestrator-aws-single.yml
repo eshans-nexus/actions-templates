@@ -35,7 +35,7 @@ jobs:
     secrets: inherit
 
   smoke-test:
-    if: ${{ inputs.is_supplementary_build == false }}
+    # if: ${{ inputs.is_supplementary_build == false }}
     needs: build
     uses: eshans-nexus/actions-templates/.github/workflows/module-aws-smoke-test.yml@main
     with:
@@ -56,5 +56,4 @@ jobs:
       source_region: ${{ needs.build.outputs.region }}
       target_regions: ${{ vars.TARGET_REGIONS }}
       metatemplate_file_path: ${{ inputs.metatemplate_file_path }}
-      is_supplementary_build: ${{ inputs.is_supplementary_build }}
     secrets: inherit

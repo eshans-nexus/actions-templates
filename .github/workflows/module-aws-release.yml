@@ -20,8 +20,6 @@ on:
         type: string
       metatemplate_file_path:
         type: string
-      is_supplementary_build:
-        type: boolean
     # secrets:
     #   AWS_OIDC_PROD_ROLE:
     #     required: true

@@ -107,6 +107,47 @@ jobs:
           echo "Checking RDP Port on $HOST..."
           timeout 300 bash -c "until nc -z -v -w5 $HOST 3389; do sleep 15; done"
 
+      - name: Prepare Scan Inputs
+        if: inputs.run_security_scan
+        id: prep_scan
+        env:
+          OUTPUTS: ${{ steps.deploy.outputs.stack_outputs }}
+          FLAVOR: ${{ inputs.flavor }}
+        run: |
+          # 1. Extract Hostname (AWS Specific JSON parsing)
+          HOST=$(echo $OUTPUTS | jq -r '.HeadnodePublicDNS // .RDPConnection // .RDPSSHConnection // .ServerAddress')
+          HOST=$(echo $HOST | sed 's/https:\/\///')
+          
+          echo "HOSTNAME=$HOST" >> $GITHUB_OUTPUT
+
+          # 2. Determine OS and User (AWS Specific Logic)
+          if [[ "$FLAVOR" == *"windows"* ]]; then
+            echo "OS_TYPE=windows" >> $GITHUB_OUTPUT
+            echo "USERNAME=Administrator" >> $GITHUB_OUTPUT
+          else
+            echo "OS_TYPE=linux" >> $GITHUB_OUTPUT
+            echo "USERNAME=ubuntu" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Run Security Scan
+        if: inputs.run_security_scan
+        uses: eshans-nexus/actions-templates/.github/actions/run-trivy-scan@main
+        with:
+          hostname: ${{ steps.prep_scan.outputs.HOSTNAME }}
+          username: ${{ steps.prep_scan.outputs.USERNAME }}
+          ssh_key_path: ${{ env.TEMP_SSH_KEY_FILENAME }}
+          os_type: ${{ steps.prep_scan.outputs.OS_TYPE }}
+          asset_name: ${{ inputs.ami_id }}
+
+      - name: Upload Scan Artifacts
+        if: inputs.run_security_scan
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.SCAN_ARTIFACT_NAME }}
+          path: |
+            report.json
+            report.md
+
       - name: Cleanup
         if: always()
         run: |
