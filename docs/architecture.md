@@ -11,8 +11,8 @@ graph TD
     Start((Start)) --> Inputs[User Input: versions]:::input
     Inputs --> Job1
 
-    %% Job 1: Prepare Versions
-    subgraph Parent_Workflow [Multi-version Build Pipeline]
+    %% Parent Workflow Scope
+    subgraph Parent_Workflow ["Multi-version Build Pipeline"]
         direction TB
         
         Job1[Job: prepare-versions]:::logic
@@ -21,14 +21,14 @@ graph TD
         %% Job 2: The Matrix Strategy
         MatrixData -- "Iterate [R2024b, R2025a...]" --> Job2
         
-        subgraph Matrix_Exec [Job: create-artifacts (Matrix Strategy)]
+        subgraph Matrix_Exec ["Job: create-artifacts (Matrix Strategy)"]
             direction TB
             style Matrix_Exec fill:#fff3e0,stroke:#e65100
             
             Job2[Call: orchestrator-aws-single.yml]:::matrix
             
             %% Detail of the Called Workflow
-            subgraph Orch_Single [Orchestrator: Single Version]
+            subgraph Orch_Single ["Orchestrator: Single Version"]
                 style Orch_Single fill:#ffffff,stroke:#999
                 
                 StepA[Packer Build]:::submodule
@@ -50,7 +50,7 @@ graph TD
         
         Job3[Job: release-artifacts]:::release
         
-        subgraph Orch_Release [Orchestrator: GH Release]
+        subgraph Orch_Release ["Orchestrator: GH Release"]
             style Orch_Release fill:#ffffff,stroke:#999
             
             StepE[Download All Artifacts]:::logic
