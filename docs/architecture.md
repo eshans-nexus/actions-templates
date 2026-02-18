@@ -22,31 +22,30 @@ graph TD
         MatrixData -- "Iterate [R2024b, R2025a...]" --> Job2
         
         subgraph Matrix_Exec ["Job: create-artifacts (Matrix Strategy)"]
-            direction TB
+            direction LR
             style Matrix_Exec fill:#fff3e0,stroke:#e65100
             
             Job2[Call: orchestrator-aws-single.yml]:::matrix
             
             %% Detail of the Called Workflow
-            subgraph Orch_Single ["Orchestrator: Single Version"]
+            subgraph Orch_Single ["Orchestrator Details"]
                 style Orch_Single fill:#ffffff,stroke:#999
+                direction LR
                 
                 StepA[Packer Build]:::submodule
-                StepB[Trivy Security Scan]:::submodule
-                StepC[AWS Smoke Test]:::submodule
-                StepD[AWS Release Prep]:::submodule
+                StepB[Smoke Test + Trivy Scan]:::submodule
+                StepC[Release Prep]:::submodule
                 
-                StepA -- "AMI ID" --> StepB
-                StepA -- "AMI ID" --> StepC
-                StepB --> StepD
-                StepC --> StepD
-                
-                StepD -- "Upload Artifacts" --> Artifacts(Intermediate Artifacts)
+                StepA --> StepB
+                StepB --> StepC
+                StepC --> Artifacts(Artifacts)
             end
+
+            Job2 -.-> StepA
         end
 
         %% Job 3: Aggregation
-        Job2 -- "Wait for all versions" --> Job3
+        Artifacts --> Job3
         
         Job3[Job: release-artifacts]:::release
         
