@@ -142,14 +142,14 @@ jobs:
           os_type: ${{ steps.prep_scan.outputs.OS_TYPE }}
           asset_name: ${{ inputs.ami_id }}
 
-      - name: Upload Scan Artifacts
-        if: inputs.run_security_scan
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{ env.SCAN_ARTIFACT_NAME }}
-          path: |
-            report.json
-            report.md
+      # - name: Upload Scan Artifacts
+      #   if: inputs.run_security_scan
+      #   uses: actions/upload-artifact@v4
+      #   with:
+      #     name: ${{ env.SCAN_ARTIFACT_NAME }}
+      #     path: |
+      #       report.json
+      #       report.md
 
       - name: Cleanup
         if: always()
