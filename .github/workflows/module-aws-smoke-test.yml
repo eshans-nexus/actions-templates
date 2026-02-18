@@ -18,6 +18,9 @@ on:
       metatemplate_file_path:
         required: true
         type: string
+      run_security_scan:
+        required: true
+        type: boolean
     secrets:
       AWS_OIDC_ROLE:
         required: true

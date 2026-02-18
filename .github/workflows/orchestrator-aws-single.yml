@@ -20,6 +20,10 @@ on:
         required: false
         type: string
         default: 'src/meta-template.json'
+      run_security_scan:
+        required: true
+        type: boolean
+        default: true
       skip_build:
         required: true
         type: boolean
@@ -44,6 +48,7 @@ jobs:
       matlab_version: ${{ inputs.matlab_version }}
       region: ${{ needs.build.outputs.region }}
       metatemplate_file_path: ${{ inputs.metatemplate_file_path }}
+      run_security_scan: ${{ inputs.run_security_scan }}
     secrets: inherit
 
   release:
