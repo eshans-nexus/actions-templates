@@ -21,7 +21,7 @@ sequenceDiagram
             Parent->>OrchAWS: Call (version, flavor, skip_build=true)
             
             activate OrchAWS
-            Note right of OrchAWS: 1. Packer Build (Mock/Real)<br/>2. Security Scan (Trivy)<br/>3. Smoke Test (Deploy/Verify)<br/>4. AWS Release (Copy AMI)
+            Note right of OrchAWS: 1. Packer Build (Mock/Real)<br/>2. Smoke Test (Deploy/Verify) + Trivy security scan<br/>4. AWS Release (Copy AMI)
             OrchAWS-->>Parent: Upload Artifacts (Templates/Logs)
             deactivate OrchAWS
         end
