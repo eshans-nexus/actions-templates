@@ -28,6 +28,8 @@ on:
         required: true
       TEST_SUBNET_ID:
         required: true
+      MATLAB_LICENSE_STRING:
+        required: true
 env:
   TEMPLATE_GEN_MODE: 'test'
   METATEMPLATE_PATH: "./${{ inputs.metatemplate_file_path }}"
@@ -83,32 +85,13 @@ jobs:
           subnet_id: ${{ secrets.TEST_SUBNET_ID }}
           key_name: ${{ steps.ssh-key.outputs.NAME }}
 
-      - name: Verify Deployment (Linux)
-        if: contains(inputs.flavor, 'linux')
-        env:
-          OUTPUTS: ${{ steps.deploy.outputs.stack_outputs }}
-        run: |
-          # Parse the relevant host connection string from the JSON output
-          # Try generic output names or specific ones
-          HOST=$(echo $OUTPUTS | jq -r '.HeadnodePublicDNS // .RDPConnection // .ServerAddress')
-          
-          # Clean HTTPS if present (NLM)
-          HOST=$(echo $HOST | sed 's/https:\/\///')
-          
-          echo "Connecting to $HOST..."
-          ssh-keyscan -H $HOST >> ~/.ssh/known_hosts || true
-          
-          # Simple check command
-          ssh -i private_key.pem -o StrictHostKeyChecking=no ubuntu@$HOST "uptime"
-
-      - name: Verify Deployment (Windows)
-        if: contains(inputs.flavor, 'windows')
-        env:
-          OUTPUTS: ${{ steps.deploy.outputs.stack_outputs }}
-        run: |
-          HOST=$(echo $OUTPUTS | jq -r '.HeadnodePublicDNS // .RDPSSHConnection')
-          echo "Checking RDP Port on $HOST..."
-          timeout 300 bash -c "until nc -z -v -w5 $HOST 3389; do sleep 15; done"
+      - name: Run Smoke Tests
+        id: smoke-test
+        uses: eshans-nexus/actions-templates/.github/actions/run-smoke-tests@nvesangi/smoke-test
+        with:
+          region: ${{ inputs.region }}
+          stack_name: ${{ env.STACK_NAME }}
+          matlab_license_string: ${{ secrets.MATLAB_LICENSE_STRING }}
 
       - name: Prepare Scan Inputs
         if: inputs.run_security_scan
