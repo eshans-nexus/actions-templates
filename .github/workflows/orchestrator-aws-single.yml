@@ -41,7 +41,7 @@ jobs:
   smoke-test:
     # if: ${{ inputs.is_supplementary_build == false }}
     needs: build
-    uses: eshans-nexus/actions-templates/.github/workflows/module-aws-smoke-test.yml@main
+    uses: eshans-nexus/actions-templates/.github/workflows/module-aws-smoke-test.yml@nvesangi/smoke-test
     with:
       ami_id: ${{ needs.build.outputs.ami_id }}
       flavor: ${{ inputs.flavor }}
