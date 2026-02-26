@@ -29,6 +29,7 @@ The CloudFormation template creates these resources:
 | **CloudWatch Logs Interface Endpoint** | Optional VPC Interface Endpoint for CloudWatch Logs (`com.amazonaws.<region>.logs`) deployed in PrivateSubnetA |
 | **EC2 Auto Scaling Interface Endpoint** | Optional VPC Interface Endpoint for EC2 Auto Scaling (`com.amazonaws.<region>.autoscaling`) deployed in PrivateSubnetA |
 | **CloudFormation Interface Endpoint** | Optional VPC Interface Endpoint for CloudFormation (`com.amazonaws.<region>.cloudformation`) deployed in PrivateSubnetA |
+| **SSM Interface Endpoints** | Optional VPC Interface Endpoints for SSM services (`com.amazonaws.<region>.ssm`, `com.amazonaws.<region>.ec2messages` and `com.amazonaws.<region>.ssmmessages`) deployed in PrivateSubnetA |
 | **Interface Endpoints Security Group** | Security group for interface endpoints allowing inbound HTTPS traffic from the VPC CIDR block |
 
 The created VPC has this architecture:
@@ -42,7 +43,7 @@ See [Creating a Stack (AWS CloudFormation Documentation)](https://docs.aws.amazo
 
 You can either use the template from this folder directly, or you can use the S3 link:
 ```
-https://mathworks-reference-architectures-templates.s3.amazonaws.com/vpc-template/v1/0/1/vpc-template.yml
+https://mathworks-reference-architectures-templates.s3.amazonaws.com/vpc-template/v1/1/0/vpc-template.yml
 ```
 
 MathWorks recommends these practices:
