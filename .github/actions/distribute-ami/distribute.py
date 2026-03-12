@@ -36,7 +36,7 @@ def main():
             region_map[region] = {"AMI": f"ami-test-{region}"}
         
         # Print output and exit
-        print(f"::set-output name=region_map_json::{json.dumps({'RegionMap': region_map})}")
+        print(f"echo 'region_map_json={json.dumps({'RegionMap': region_map})}' >> $GITHUB_OUTPUT")
         return
 
     # --- REAL MODE ---
