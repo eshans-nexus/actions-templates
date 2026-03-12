@@ -1,14 +1,9 @@
 # Amazon Virtual Private Cloud (VPC) CloudFormation Template for MATLAB Reference Architectures
 
-To create a virtual private cloud (VPC) for deploying MATLAB or MATLAB Parallel Server on AWS, use the CloudFormation template [vpc-template.yml](vpc-template.yml) in this folder. 
-
-## Overview
-
-You can use this CloudFormation template to:
+This Infrastructure as Code (IaC) building block allows you to create a virtual private cloud (VPC) for deploying MATLAB or MATLAB Parallel Server on AWS. You can use the CloudFormation template [vpc-template.yml](vpc-template.yml) in this folder to:
 
 - Deploy [MATLAB on AWS](https://github.com/mathworks-ref-arch/matlab-on-aws) in a private network.
 - Deploy [MATLAB Parallel Server on AWS](https://github.com/mathworks-ref-arch/matlab-parallel-server-on-aws) in a private network.
-
 
 The CloudFormation template creates these resources:
 
@@ -38,8 +33,7 @@ The created VPC has this architecture:
 
 ## Instructions
 
-For general instructions on creating a new stack using a CloudFormation template, see  
-See [Creating a Stack (AWS CloudFormation Documentation)](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/cfn-console-create-stack.html).
+For general instructions on creating a new stack using a CloudFormation template, see the AWS documentation on [Create a stack from the CloudFormation console](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/cfn-console-create-stack.html).
 
 You can either use the template from this folder directly, or you can use the S3 link:
 ```
