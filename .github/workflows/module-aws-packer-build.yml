@@ -68,11 +68,24 @@ jobs:
         if: inputs.skip_build == true
         working-directory: ${{ inputs.packer_dir }}
         run: |
-          mkdir -p .
+          sudo apt-get install -y jq > /dev/null 2>&1
+          RELEASE_TEMPLATE="${GITHUB_WORKSPACE}/releases/${{ inputs.matlab_version }}/aws-matlab-template.json"
+          REGION="${{ vars.AWS_REGION }}"
+
+          if [ -f "$RELEASE_TEMPLATE" ]; then
+            AMI_ID=$(jq -r --arg region "$REGION" '.Mappings.RegionMap[$region].AMI' "$RELEASE_TEMPLATE")
+            if [ -z "$AMI_ID" ] || [ "$AMI_ID" == "null" ]; then
+              echo "::error::No AMI found for region $REGION in $RELEASE_TEMPLATE"
+              exit 1
+            fi
+          else
+            echo "::error::Release template not found: $RELEASE_TEMPLATE"
+            exit 1
+          fi
+
+          echo "Using AMI $AMI_ID from $RELEASE_TEMPLATE for region $REGION"
           echo "Mock Build Log" > ${{ env.PACKER_LOG_FILENAME }}
-          cat <<EOF > ${{ env.PACKER_MANIFEST_FILENAME }}
-          {"builds": [{"artifact_id": "us-east-1:ami-06554a9c16731eeb8"}]}
-          EOF
+          echo "{\"builds\": [{\"artifact_id\": \"${REGION}:${AMI_ID}\"}]}" > ${{ env.PACKER_MANIFEST_FILENAME }}
 
       - name: Export Outputs
         id: export
