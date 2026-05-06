@@ -41,7 +41,7 @@ jobs:
   commit-release-files:
     if: ${{ inputs.is_supplementary_build == false }}
     name: Commit release files into repository
-    uses: eshans-nexus/actions-templates/.github/workflows/module-gh-commit-files.yml@main
+    uses: eshans-nexus/actions-templates/.github/workflows/module-gh-commit-files.yml@github
     with: 
       target_versions: ${{ inputs.target_versions }}
       s3_bucket_url: ${{ inputs.s3_bucket_url }}
@@ -52,7 +52,7 @@ jobs:
 
   publish-release-artifacts:
     name: Create Aggregate GH Release
-    uses: eshans-nexus/actions-templates/.github/workflows/module-gh-create-release.yml@main
+    uses: eshans-nexus/actions-templates/.github/workflows/module-gh-create-release.yml@github
     with:
       release_files_pattern: ${{ inputs.release_files_pattern }} 
       release_tag: ${{ inputs.release_tag }}
