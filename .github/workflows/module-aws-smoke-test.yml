@@ -50,10 +50,21 @@ jobs:
       id-token: write
       contents: read
     steps:
+      - name: Validate Inputs
+        run: |
+          if [ -z "${{ inputs.region }}" ]; then
+            echo "::error::Region input is empty. The build step may have failed to produce outputs."
+            exit 1
+          fi
+          if [ -z "${{ inputs.ami_id }}" ]; then
+            echo "::error::AMI ID input is empty. The build step may have failed to produce outputs."
+            exit 1
+          fi
+
       - uses: actions/checkout@v4
 
       - name: Generate test template
-        uses: eshans-nexus/actions-templates/.github/actions/create-aws-template@github
+        uses: eshans-nexus/actions-templates/.github/actions/create-aws-template@review-ready
         with:
           region_map: ${{ env.TEST_REGION_MAP }}
           ami_id: ${{ inputs.ami_id }}
@@ -78,7 +89,7 @@ jobs:
 
       - name: Deploy Infrastructure
         id: deploy
-        uses: eshans-nexus/actions-templates/.github/actions/deploy-cfn@github
+        uses: eshans-nexus/actions-templates/.github/actions/deploy-cfn@review-ready
         with:
           template_file_path: ./${{ env.TEMPLATE_FILENAME }}
           flavor: ${{ inputs.flavor }}
@@ -86,7 +97,7 @@ jobs:
           stack_name: ${{ env.STACK_NAME }}
           vpc_id: ${{ secrets.TEST_VPC_ID }}
           subnet_id: ${{ secrets.TEST_SUBNET_ID }}
-          key_name: epatel-us-east-1
+          key_name: ${{ vars.EC2_KEY_NAME }}
 
       # - name: Verify Deployment (Linux)
       #   if: contains(inputs.flavor, 'linux')
@@ -151,7 +162,7 @@ jobs:
 
       - name: Run Security Scan
         if: inputs.run_security_scan
-        uses: eshans-nexus/actions-templates/.github/actions/run-trivy-scan@github
+        uses: eshans-nexus/actions-templates/.github/actions/run-trivy-scan@review-ready
         with:
           instance_id: ${{ steps.prep_scan.outputs.INSTANCE_ID }}
           os_type: ${{ steps.prep_scan.outputs.OS_TYPE }}
@@ -169,4 +180,9 @@ jobs:
       - name: Cleanup
         if: always()
         run: |
+          echo "Deleting stack ${{ env.STACK_NAME }}..."
           aws cloudformation delete-stack --stack-name ${{ env.STACK_NAME }}
+          echo "Waiting for stack deletion..."
+          if ! aws cloudformation wait stack-delete-complete --stack-name ${{ env.STACK_NAME }} 2>/dev/null; then
+            echo "::warning::Stack deletion may not have completed for ${{ env.STACK_NAME }}. Check the AWS console for orphaned resources."
+          fi

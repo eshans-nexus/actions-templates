@@ -39,7 +39,7 @@ on:
 
 jobs:
   build:
-    uses: eshans-nexus/actions-templates/.github/workflows/module-aws-packer-build.yml@github
+    uses: eshans-nexus/actions-templates/.github/workflows/module-aws-packer-build.yml@review-ready
     with:
       matlab_version: ${{ inputs.matlab_version }}
       skip_build: ${{ inputs.skip_build }}
@@ -49,7 +49,7 @@ jobs:
   smoke-test:
     if: ${{ inputs.skip_test == false }}
     needs: build
-    uses: eshans-nexus/actions-templates/.github/workflows/module-aws-smoke-test.yml@github
+    uses: eshans-nexus/actions-templates/.github/workflows/module-aws-smoke-test.yml@review-ready
     with:
       ami_id: ${{ needs.build.outputs.ami_id }}
       flavor: ${{ inputs.flavor }}
@@ -63,7 +63,7 @@ jobs:
   release:
     if: ${{ inputs.is_supplementary_build == false }}
     needs: [build]
-    uses: eshans-nexus/actions-templates/.github/workflows/module-aws-release.yml@github
+    uses: eshans-nexus/actions-templates/.github/workflows/module-aws-release.yml@review-ready
     with:
       ami_id: ${{ needs.build.outputs.ami_id }}
       flavor: ${{ inputs.flavor }}

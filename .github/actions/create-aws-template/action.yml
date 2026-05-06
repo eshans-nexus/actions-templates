@@ -35,26 +35,47 @@ runs:
             echo "jq not found, installing..."
             sudo apt-get update && sudo apt-get install -y jq
         fi
+        if ! command -v jq &> /dev/null; then
+            echo "::error::Failed to install jq"
+            exit 1
+        fi
+
+        # 2. Validate inputs
+        if [ -z "$REGION_MAP" ]; then
+            echo "::error::region_map input is empty"
+            exit 1
+        fi
+        if [ ! -f "$TEMPLATE" ]; then
+            echo "::error::Meta-template not found at: $TEMPLATE"
+            exit 1
+        fi
+        if ! echo "$REGION_MAP" | jq empty 2>/dev/null; then
+            echo "::error::region_map is not valid JSON: $REGION_MAP"
+            exit 1
+        fi
 
         echo "Injecting Region Map into template..."
 
-        # 2. Write input JSON string to temp file for safe handling
+        # 3. Write input JSON string to temp file for safe handling
         echo "$REGION_MAP" > region_map_temp.json
 
-        # 3. Inject the map into .Mappings.RegionMap
+        # 4. Inject the map into .Mappings.RegionMap
         jq --slurpfile map region_map_temp.json \
            '.Mappings.RegionMap = $map[0]' \
            "$TEMPLATE" > "$OUT_NAME"
 
         rm region_map_temp.json
 
-        # 4. Inject Lambda code from file if provided
+        # 5. Inject Lambda code from file if provided
         if [ -n "$LAMBDA_CODE_FILE" ] && [ -f "$LAMBDA_CODE_FILE" ]; then
             echo "Injecting Lambda code from $LAMBDA_CODE_FILE..."
             jq --rawfile code "$LAMBDA_CODE_FILE" \
                '.Resources.AttachInstanceProfileLambda.Properties.Code.ZipFile = $code' \
                "$OUT_NAME" > "${OUT_NAME}.tmp"
             mv "${OUT_NAME}.tmp" "$OUT_NAME"
+        elif [ -n "$LAMBDA_CODE_FILE" ]; then
+            echo "::error::lambda_code_file specified but not found: $LAMBDA_CODE_FILE"
+            exit 1
         fi
 
         echo "Generated: $OUT_NAME"

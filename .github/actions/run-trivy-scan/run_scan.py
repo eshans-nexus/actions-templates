@@ -61,9 +61,7 @@ def main():
             status = invocation["Status"]
             print(f"Current status: {status} (Elapsed: {int(elapsed)}s / {timeout_seconds}s)")
         except Exception as e:
-            # Handle eventual consistency where invocation isn't immediately available
-            print(f"Waiting for command invocation to register...")
-            pass
+            print(f"::debug::Waiting for command invocation to register: {e}")
 
     if status != "Success":
         print(f"::error::SSM Command failed with status: {status}")

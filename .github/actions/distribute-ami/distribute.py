@@ -35,8 +35,10 @@ def main():
             # Return a mock or the source AMI for all regions to validate template generation
             region_map[region] = {"AMI": f"ami-test-{region}"}
         
-        # Print output and exit
-        print(f"echo 'region_map_json={json.dumps({'RegionMap': region_map})}' >> $GITHUB_OUTPUT")
+        final_json = json.dumps({'RegionMap': region_map})
+        print(f"Test mode Region Map: {final_json}")
+        with open(os.environ['GITHUB_OUTPUT'], 'a') as fh:
+            fh.write(f"region_map_json={final_json}\n")
         return
 
     # --- REAL MODE ---
