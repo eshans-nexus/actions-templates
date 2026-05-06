@@ -20,6 +20,10 @@ on:
         type: string
       metatemplate_file_path:
         type: string
+      lambda_code_file:
+        required: false
+        type: string
+        default: ''
     # secrets:
     #   AWS_OIDC_PROD_ROLE:
     #     required: true
@@ -56,6 +60,7 @@ jobs:
           output_filename: ${{ env.TEMPLATE_FILENAME }}
           artifact_name: ${{ env.RELEASE_ARTIFACT_NAME }}
           metatemplate_file_path: ${{ env.METATEMPLATE_PATH }}
+          lambda_code_file: ${{ inputs.lambda_code_file }}
 
       - name: Push Template to Prod S3 (Placeholder)
         run: echo "Pushing ./prep-assets/patched-template.json to s3://prod-bucket/..."

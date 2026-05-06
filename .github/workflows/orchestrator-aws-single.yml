@@ -32,6 +32,10 @@ on:
         required: false
         type: boolean
         default: false
+      lambda_code_file:
+        required: false
+        type: string
+        default: ''
 
 jobs:
   build:
@@ -53,6 +57,7 @@ jobs:
       region: ${{ needs.build.outputs.region }}
       metatemplate_file_path: ${{ inputs.metatemplate_file_path }}
       run_security_scan: ${{ inputs.run_security_scan }}
+      lambda_code_file: ${{ inputs.lambda_code_file }}
     secrets: inherit
 
   release:
@@ -66,4 +71,5 @@ jobs:
       source_region: ${{ needs.build.outputs.region }}
       target_regions: ${{ vars.TARGET_REGIONS }}
       metatemplate_file_path: ${{ inputs.metatemplate_file_path }}
+      lambda_code_file: ${{ inputs.lambda_code_file }}
     secrets: inherit

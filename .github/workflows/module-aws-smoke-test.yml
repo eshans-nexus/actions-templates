@@ -21,6 +21,10 @@ on:
       run_security_scan:
         required: true
         type: boolean
+      lambda_code_file:
+        required: false
+        type: string
+        default: ''
     secrets:
       AWS_OIDC_ROLE:
         required: true
@@ -56,6 +60,7 @@ jobs:
           output_filename: ${{ env.TEMPLATE_FILENAME }}
           artifact_name: ${{ env.TEST_ARTIFACT_NAME }}
           metatemplate_file_path: ${{ env.METATEMPLATE_PATH }}
+          lambda_code_file: ${{ inputs.lambda_code_file }}
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4

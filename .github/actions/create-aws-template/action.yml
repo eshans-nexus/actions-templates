@@ -14,6 +14,10 @@ inputs:
   metatemplate_file_path:
     description: 'Path to the source JSON meta-template file'
     required: true
+  lambda_code_file:
+    description: 'Path to a Python file whose contents will be injected into the Lambda ZipFile field'
+    required: false
+    default: ''
 
 runs:
   using: "composite"
@@ -24,6 +28,7 @@ runs:
         TEMPLATE: ${{ inputs.metatemplate_file_path }}
         REGION_MAP: ${{ inputs.region_map }}
         OUT_NAME: ${{ inputs.output_filename }}
+        LAMBDA_CODE_FILE: ${{ inputs.lambda_code_file }}
       run: |
         # 1. Install jq if missing
         if ! command -v jq &> /dev/null; then
@@ -37,12 +42,20 @@ runs:
         echo "$REGION_MAP" > region_map_temp.json
 
         # 3. Inject the map into .Mappings.RegionMap
-        # This replaces whatever is currently in Mappings.RegionMap
         jq --slurpfile map region_map_temp.json \
            '.Mappings.RegionMap = $map[0]' \
            "$TEMPLATE" > "$OUT_NAME"
 
         rm region_map_temp.json
+
+        # 4. Inject Lambda code from file if provided
+        if [ -n "$LAMBDA_CODE_FILE" ] && [ -f "$LAMBDA_CODE_FILE" ]; then
+            echo "Injecting Lambda code from $LAMBDA_CODE_FILE..."
+            jq --rawfile code "$LAMBDA_CODE_FILE" \
+               '.Resources.AttachInstanceProfileLambda.Properties.Code.ZipFile = $code' \
+               "$OUT_NAME" > "${OUT_NAME}.tmp"
+            mv "${OUT_NAME}.tmp" "$OUT_NAME"
+        fi
 
         echo "Generated: $OUT_NAME"
 
