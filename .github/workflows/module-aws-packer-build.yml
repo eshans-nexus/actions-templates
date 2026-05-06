@@ -60,6 +60,7 @@ jobs:
         run: |
           packer init .
           packer build -color=false \
+            -var "MANIFEST_OUTPUT_FILE=${{ env.PACKER_MANIFEST_FILENAME }}" \
             -var-file=${{ env.PACKER_RELEASE_CONFIG }} \
             . | tee ${{ env.PACKER_LOG_FILENAME }}
 
