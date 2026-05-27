@@ -1,0 +1,69 @@
+{
+  "matlab-linux": {
+    "key_param": "SSHKeyName",
+    "vpc_param": "VPC",
+    "subnet_param": "Subnet",
+    "ami_param": "CustomAmiId",
+    "client_ip_param": "ClientIPAddress",
+    "defaults": [
+      { "ParameterKey": "InstanceType", "ParameterValue": "t3.medium" },
+      { "ParameterKey": "AutoShutdown", "ParameterValue": "Never" },
+      { "ParameterKey": "ClientIPAddress", "ParameterValue": "" },
+      { "ParameterKey": "Password", "ParameterValue": "MathWorks!1234" },
+      { "ParameterKey": "ConfirmPassword", "ParameterValue": "MathWorks!1234" }
+    ]
+  },
+  "matlab-windows": {
+    "key_param": "RDPKeyName",
+    "vpc_param": "VPC",
+    "subnet_param": "Subnet",
+    "ami_param": "CustomAmiId",
+    "client_ip_param": "ClientIPAddress",
+    "defaults": [
+      { "ParameterKey": "InstanceType", "ParameterValue": "t3.xlarge" },
+      { "ParameterKey": "AutoShutdown", "ParameterValue": "After 1 hour" },
+      { "ParameterKey": "Password", "ParameterValue": "MathWorks!1234" },
+      { "ParameterKey": "ConfirmPassword", "ParameterValue": "MathWorks!1234" }
+    ]
+  },
+  "ps-linux": {
+    "key_param": "SSHKeyName",
+    "vpc_param": "VPC",
+    "subnet_param": "Subnets",
+    "ami_param": "InstanceAmiCustom",
+    "client_ip_param": "ClientIPAddress",
+    "defaults": [
+      { "ParameterKey": "HeadnodeInstanceType", "ParameterValue": "t3.medium" },
+      { "ParameterKey": "WorkerInstanceType", "ParameterValue": "t3.medium" },
+      { "ParameterKey": "NumWorkerNodes", "ParameterValue": "1" },
+      { "ParameterKey": "SharedEBSVolumeSize", "ParameterValue": "32" },
+      { "ParameterKey": "ClusterName", "ParameterValue": "SmokeTestLinux" }
+    ]
+  },
+  "ps-windows": {
+    "key_param": "RDPKeyName",
+    "vpc_param": "VPC",
+    "subnet_param": "Subnets",
+    "ami_param": "InstanceAmiCustom",
+    "client_ip_param": "ClientIPAddress",
+    "defaults": [
+      { "ParameterKey": "HeadnodeInstanceType", "ParameterValue": "t3.xlarge" },
+      { "ParameterKey": "WorkerInstanceType", "ParameterValue": "t3.xlarge" },
+      { "ParameterKey": "NumWorkerNodes", "ParameterValue": "1" },
+      { "ParameterKey": "DatabaseVolumeSize", "ParameterValue": "32" },
+      { "ParameterKey": "ClusterName", "ParameterValue": "SmokeTestWin" }
+    ]
+  },
+  "nlm-linux": {
+    "key_param": "SSHKeyName",
+    "vpc_param": "VPC",
+    "subnet_param": "Subnet",
+    "client_ip_param": "ClientIPAddress",
+    "defaults": [
+      { "ParameterKey": "ServerInstanceType", "ParameterValue": "t3.micro" },
+      { "ParameterKey": "EnablePublicIPAddress", "ParameterValue": "Yes" },
+      { "ParameterKey": "Password", "ParameterValue": "MathWorks!123" },
+      { "ParameterKey": "ConfirmPassword", "ParameterValue": "MathWorks!123" }
+    ]
+  }
+}
