@@ -1,0 +1,133 @@
+name: 'Module: AWS Smoke Test'
+
+on:
+  workflow_call:
+    inputs:
+      ami_id:
+        required: true
+        type: string
+      flavor:
+        required: true
+        type: string
+      matlab_version:
+        required: true
+        type: string
+      region:
+        required: true
+        type: string
+      metatemplate_file_path:
+        required: true
+        type: string
+      run_security_scan:
+        required: true
+        type: boolean
+      lambda_code_file:
+        required: false
+        type: string
+        default: ''
+
+env:
+  METATEMPLATE_PATH: "./${{ inputs.metatemplate_file_path }}"
+  TEMPLATE_FILENAME: "${{ inputs.matlab_version }}-test-template.json"
+  TEST_ARTIFACT_NAME: "${{ inputs.matlab_version }}-test-template"
+  STACK_NAME: "msa-gen-smoke-test-${{ inputs.flavor }}-${{ inputs.matlab_version }}-${{ github.run_id }}"
+  TEST_REGION_MAP: '{"${{ inputs.region }}": {"AMI": "${{ inputs.ami_id }}"}}'
+
+jobs:
+  smoke-test:
+    name: "${{ inputs.matlab_version }}: Run smoke tests"
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - name: Validate Inputs
+        run: |
+          if [ -z "${{ inputs.region }}" ]; then
+            echo "::error::Region input is empty. The build step may have failed to produce outputs."
+            exit 1
+          fi
+          if [ -z "${{ inputs.ami_id }}" ]; then
+            echo "::error::AMI ID input is empty. The build step may have failed to produce outputs."
+            exit 1
+          fi
+
+      - uses: actions/checkout@v4
+
+      - name: Generate test template
+        uses: development/iac-building-blocks/.github/actions/create-aws-template@main
+        with:
+          region_map: ${{ env.TEST_REGION_MAP }}
+          ami_id: ${{ inputs.ami_id }}
+          output_filename: ${{ env.TEMPLATE_FILENAME }}
+          artifact_name: ${{ env.TEST_ARTIFACT_NAME }}
+          metatemplate_file_path: ${{ env.METATEMPLATE_PATH }}
+          lambda_code_file: ${{ inputs.lambda_code_file }}
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_OIDC_ROLE }}
+          aws-region: ${{ inputs.region }}
+
+      - name: Deploy Infrastructure
+        id: deploy
+        uses: development/iac-building-blocks/.github/actions/deploy-cfn@main
+        with:
+          template_file_path: ./${{ env.TEMPLATE_FILENAME }}
+          flavor: ${{ inputs.flavor }}
+          region: ${{ inputs.region }}
+          stack_name: ${{ env.STACK_NAME }}
+          vpc_id: ${{ secrets.TEST_VPC_ID }}
+          subnet_id: ${{ secrets.TEST_SUBNET_ID }}
+          key_name: ${{ vars.EC2_KEY_NAME }}
+
+      - name: Prepare Scan Inputs
+        if: inputs.run_security_scan
+        id: prep_scan
+        env:
+          OUTPUTS: ${{ steps.deploy.outputs.stack_outputs }}
+          FLAVOR: ${{ inputs.flavor }}
+          STACK_NAME: ${{ env.STACK_NAME }} 
+        run: |
+          echo "Retrieving Instance ID for Stack: $STACK_NAME..."
+
+          INSTANCE_ID=$(aws cloudformation describe-stack-resource \
+            --stack-name "$STACK_NAME" \
+            --logical-resource-id "MATLABEC2Instance" \
+            --query "StackResourceDetail.PhysicalResourceId" \
+            --output text)
+            
+          if [ -z "$INSTANCE_ID" ] || [ "$INSTANCE_ID" == "None" ]; then
+            echo "::error::Could not find Instance ID for stack $STACK_NAME"
+            exit 1
+          fi
+          
+          echo "Found Instance ID: $INSTANCE_ID"
+          echo "INSTANCE_ID=$INSTANCE_ID" >> $GITHUB_OUTPUT
+
+          if [[ "$FLAVOR" == *"windows"* ]]; then
+            echo "OS_TYPE=windows" >> $GITHUB_OUTPUT
+            echo "USERNAME=Administrator" >> $GITHUB_OUTPUT
+          else
+            echo "OS_TYPE=linux" >> $GITHUB_OUTPUT
+            echo "USERNAME=ubuntu" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Run Security Scan
+        if: inputs.run_security_scan
+        uses: development/iac-building-blocks/.github/actions/run-trivy-scan@main
+        with:
+          instance_id: ${{ steps.prep_scan.outputs.INSTANCE_ID }}
+          os_type: ${{ steps.prep_scan.outputs.OS_TYPE }}
+          asset_name: ${{ inputs.ami_id }}
+
+      - name: Cleanup
+        if: always()
+        run: |
+          echo "Deleting stack ${{ env.STACK_NAME }}..."
+          aws cloudformation delete-stack --stack-name ${{ env.STACK_NAME }}
+          echo "Waiting for stack deletion..."
+          if ! aws cloudformation wait stack-delete-complete --stack-name ${{ env.STACK_NAME }} 2>/dev/null; then
+            echo "::warning::Stack deletion may not have completed for ${{ env.STACK_NAME }}. Check the AWS console for orphaned resources."
+          fi
