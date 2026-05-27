@@ -1,0 +1,71 @@
+name: 'Orchestrator: Single Version AWS Pipeline'
+
+on:
+  workflow_call:
+    inputs:
+      matlab_version:
+        required: true
+        type: string
+      flavor:
+        required: true
+        type: string
+      is_supplementary_build:
+        required: true
+        type: boolean
+      packer_dir:
+        required: false
+        type: string
+        default: 'packer/v1'
+      metatemplate_file_path:
+        required: false
+        type: string
+        default: 'src/meta-template.json'
+      skip_build:
+        required: true
+        type: boolean
+        default: false
+      skip_test:
+        required: false
+        type: boolean
+        default: false
+      lambda_code_file:
+        required: false
+        type: string
+        default: ''
+
+jobs:
+  build:
+    uses: development/iac-building-blocks/.github/workflows/module-aws-packer-build.yml@main
+    with:
+      matlab_version: ${{ inputs.matlab_version }}
+      skip_build: ${{ inputs.skip_build }}
+      packer_dir: ${{ inputs.packer_dir }}
+    secrets: inherit
+
+  smoke-test:
+    if: ${{ inputs.skip_test == false }}
+    needs: build
+    uses: development/iac-building-blocks/.github/workflows/module-aws-smoke-test.yml@main
+    with:
+      ami_id: ${{ needs.build.outputs.ami_id }}
+      flavor: ${{ inputs.flavor }}
+      matlab_version: ${{ inputs.matlab_version }}
+      region: ${{ needs.build.outputs.region }}
+      metatemplate_file_path: ${{ inputs.metatemplate_file_path }}
+      run_security_scan: ${{ vars.RUN_SECURITY_SCAN == 'true' }}
+      lambda_code_file: ${{ inputs.lambda_code_file }}
+    secrets: inherit
+
+  release:
+    if: ${{ inputs.is_supplementary_build == false }}
+    needs: [build]
+    uses: development/iac-building-blocks/.github/workflows/module-aws-release.yml@main
+    with:
+      ami_id: ${{ needs.build.outputs.ami_id }}
+      flavor: ${{ inputs.flavor }}
+      matlab_version: ${{ inputs.matlab_version }}
+      source_region: ${{ needs.build.outputs.region }}
+      target_regions: ${{ vars.TARGET_REGIONS }}
+      metatemplate_file_path: ${{ inputs.metatemplate_file_path }}
+      lambda_code_file: ${{ inputs.lambda_code_file }}
+    secrets: inherit
