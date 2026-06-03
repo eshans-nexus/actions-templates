@@ -12,18 +12,19 @@ on:
         type: string
       s3_bucket_url:
         description: |
-          Base URL of the S3 bucket where release artifacts are hosted
-          for public download. Injected into release metadata files so
-          end users can locate downloadable assets.
+          Base URL of the S3 bucket where release templates are published.
+          Used by the commit job to generate the correct S3 paths when
+          publishing CloudFormation templates for distribution.
           Example: "https://s3.amazonaws.com/matlab-on-aws-win"
         required: true
         type: string
       dual_repo_url:
         description: |
-          URL of the public-facing companion repository (e.g., the
-          mathworks-ref-arch mirror). Used in generated release notes
-          and README links to point users to the public repo.
-          Example: "https://github.com/mathworks-ref-arch/matlab-on-aws"
+          URL of the other OS variant repository for the same product.
+          Used in generated release metadata to cross-link between
+          Linux and Windows variants of the same reference architecture.
+          Example: for matlab-on-aws-win, this would be
+          "https://github.com/mathworks-ref-arch/matlab-on-aws" (the Linux variant)
         required: true
         type: string
       artifacts_path:
