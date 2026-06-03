@@ -4,36 +4,86 @@ on:
   workflow_call:
     inputs:
       target_versions:
+        description: |
+          JSON array of MATLAB versions to include in this release.
+          Typically passed from module-gh-get-versions output.
+          Example: '["R2025a","R2024b","R2024a"]'
         required: true
         type: string
       s3_bucket_url:
+        description: |
+          Base URL of the S3 bucket where release artifacts are hosted
+          for public download. Injected into release metadata files so
+          end users can locate downloadable assets.
+          Example: "https://s3.amazonaws.com/matlab-on-aws-win"
         required: true
         type: string
       dual_repo_url:
+        description: |
+          URL of the public-facing companion repository (e.g., the
+          mathworks-ref-arch mirror). Used in generated release notes
+          and README links to point users to the public repo.
+          Example: "https://github.com/mathworks-ref-arch/matlab-on-aws"
         required: true
         type: string
       artifacts_path:
+        description: |
+          Local path where build artifacts are downloaded and processed.
+          Rarely needs overriding — change only if your workflow has
+          conflicting path usage.
         type: string
         default: ./artifacts
       release_template_name_pattern:
+        description: |
+          Glob pattern to identify release template files among downloaded
+          artifacts. Used by the commit job to find and process the correct
+          CloudFormation templates produced by the build stage.
+          Example: "*-release-template.json"
         type: string
         default: "*-release-template.json"
       release_files_pattern:
+        description: |
+          Glob pattern for files to include in the GitHub Release zip
+          archives. Each version's matching files are zipped separately.
+          Use "*" to include all artifacts.
         default: "*"
         type: string
       release_tag:
+        description: |
+          Git tag name for the GitHub Release. Must be unique across
+          releases. Defaults to "Build-<run_number>" for automatic
+          sequential naming.
+          Example: "Build-42", "v2025a-release"
         default: "Build-${{ github.run_number }}"
         type: string
       release_title:
+        description: |
+          Display title for the GitHub Release page. Shown in the
+          releases UI and notification emails.
+          Example: "Ref Arch Build 42", "R2025a Production Release"
         default: "Ref Arch Build ${{ github.run_number }}"
         type: string
       prerelease:
+        description: |
+          When true, marks the GitHub Release as a pre-release. Pre-releases
+          are visible but not shown as the "latest" release. Use for
+          staging/validation builds that should not be consumed by users.
         default: false
         type: boolean
       generate_attestations:
+        description: |
+          When true, generates SLSA provenance attestations for release
+          artifacts using GitHub's artifact attestations feature. Requires
+          the caller workflow to have `attestations: write` permission.
+          Set to false if your org hasn't enabled attestations.
         default: true
         type: boolean
       is_supplementary_build:
+        description: |
+          When true, skips the commit-release-files job (no files are
+          committed back to the repo). The GitHub Release is still created.
+          Use for secondary builds (e.g., Windows variant) where the
+          primary pipeline owns the repo commit step.
         type: boolean
 
 jobs:

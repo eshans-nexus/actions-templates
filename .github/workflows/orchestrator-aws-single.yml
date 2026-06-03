@@ -4,31 +4,73 @@ on:
   workflow_call:
     inputs:
       matlab_version:
+        description: |
+          The MATLAB release version to build. Used to locate the Packer
+          variable file at release-config/<version>.pkrvars.hcl, name
+          artifacts, and tag outputs.
+          Example: "R2025a", "R2024b"
         required: true
         type: string
       flavor:
+        description: |
+          Deployment architecture flavor. Determines CloudFormation
+          parameter injection during smoke tests (via flavor-mappings.json)
+          and influences OS-specific behavior in security scans.
+          Valid values: matlab-linux, matlab-windows, ps-linux, ps-windows, nlm-linux
         required: true
         type: string
       is_supplementary_build:
+        description: |
+          When true, skips the release stage (AMI distribution + template
+          generation). Use for builds that only need build+test without
+          publishing — e.g., validation builds on feature branches or
+          secondary architecture builds where another pipeline owns release.
         required: true
         type: boolean
       packer_dir:
+        description: |
+          Relative path (from repo root) to the directory containing
+          Packer configuration files (.pkr.hcl) and the release-config/
+          subdirectory with per-version variable files.
+          Example: "packer/v1", "infra/packer"
         required: false
         type: string
         default: 'packer/v1'
       metatemplate_file_path:
+        description: |
+          Relative path to the CloudFormation meta-template file. This
+          template contains placeholder markers where the RegionMap and
+          optional Lambda code are injected by the create-aws-template
+          action to produce the final release/test template.
+          Example: "src/aws-matlab-template.json", "src/meta-template.json"
         required: false
         type: string
         default: 'src/meta-template.json'
       skip_build:
+        description: |
+          When true, uses mock build mode: reads an existing AMI ID from
+          releases/<matlab_version>/aws-matlab-template.json instead of
+          running Packer. Useful for testing downstream stages (smoke test,
+          release) without incurring AWS build costs.
         required: true
         type: boolean
         default: false
       skip_test:
+        description: |
+          When true, skips the smoke test stage entirely. The pipeline
+          goes directly from build to release (if applicable). Useful
+          during rapid iteration or when testing infrastructure is
+          unavailable.
         required: false
         type: boolean
         default: false
       lambda_code_file:
+        description: |
+          Relative path to a Lambda function source file to embed inline
+          in the CloudFormation template. If empty, no Lambda code is
+          injected. Used by products that bundle a custom Lambda (e.g.,
+          instance profile attachment) within their CFn stack.
+          Example: "src/attachinstanceprofile.py"
         required: false
         type: string
         default: ''
