@@ -5,33 +5,31 @@ on:
     inputs:
       matlab_version:
         description: |
-          The MATLAB release version to build. Used to locate the Packer
-          variable file at release-config/<version>.pkrvars.hcl, name
-          artifacts, and tag outputs.
+          The MATLAB release version to build. Used to locate the
+          per-version variable file and name artifacts/outputs.
           Example: "R2025a", "R2024b"
         required: true
         type: string
-      flavor:
+      refarch_type:
         description: |
-          Deployment architecture flavor. Determines CloudFormation
-          parameter injection during smoke tests (via flavor-mappings.json)
-          and influences OS-specific behavior in security scans.
+          Deployment architecture type (product and OS combination).
+          Determines platform-specific configuration for build, test,
+          and release stages.
           Valid values: matlab-linux, matlab-windows, ps-linux, ps-windows, nlm-linux
         required: true
         type: string
       is_supplementary_build:
         description: |
-          When true, skips the release stage (AMI distribution + template
-          generation). Use for builds that only need build+test without
-          publishing — e.g., validation builds on feature branches or
-          secondary architecture builds where another pipeline owns release.
+          When true, skips the release stage. Use for builds that only
+          need build+test without publishing — e.g., validation builds
+          on feature branches or secondary builds where another pipeline
+          owns release.
         required: true
         type: boolean
       packer_dir:
         description: |
-          Relative path (from repo root) to the directory containing
-          Packer configuration files (.pkr.hcl) and the release-config/
-          subdirectory with per-version variable files.
+          Relative path to the directory containing Packer build
+          configuration and per-version variable files.
           Example: "packer/v1", "infra/packer"
         required: false
         type: string
@@ -39,9 +37,8 @@ on:
       metatemplate_file_path:
         description: |
           Relative path to the CloudFormation meta-template file. This
-          template contains placeholder markers where the RegionMap and
-          optional Lambda code are injected by the create-aws-template
-          action to produce the final release/test template.
+          template is used to produce the final release and test templates
+          by injecting region and configuration data.
           Example: "src/aws-matlab-template.json", "src/meta-template.json"
         required: false
         type: string
@@ -49,10 +46,9 @@ on:
       skip_build:
         description: |
           When true, uses mock build mode: reads an existing AMI ID from
-          releases/<matlab_version>/aws-matlab-template.json instead of
-          running Packer. Useful for testing downstream stages (smoke test,
-          release) without incurring AWS build costs.
-        required: true
+          a previous release instead of running a new build. Useful for
+          testing downstream stages without incurring build costs.
+        required: false
         type: boolean
         default: false
       skip_test:
@@ -66,10 +62,10 @@ on:
         default: false
       lambda_code_file:
         description: |
-          Relative path to a Lambda function source file to embed inline
-          in the CloudFormation template. If empty, no Lambda code is
-          injected. Used by products that bundle a custom Lambda (e.g.,
-          instance profile attachment) within their CFn stack.
+          Relative path to a Lambda function source file to embed in
+          the release template. If empty, no Lambda code is included.
+          Used by products that bundle a custom Lambda within their
+          deployment stack.
           Example: "src/attachinstanceprofile.py"
         required: false
         type: string
@@ -77,7 +73,7 @@ on:
 
 jobs:
   build:
-    uses: development/iac-building-blocks/.github/workflows/module-aws-packer-build.yml@main
+    uses: mathworks-ref-arch/iac-building-blocks/.github/workflows/module-aws-packer-build.yml@main
     with:
       matlab_version: ${{ inputs.matlab_version }}
       skip_build: ${{ inputs.skip_build }}
@@ -87,10 +83,10 @@ jobs:
   smoke-test:
     if: ${{ inputs.skip_test == false }}
     needs: build
-    uses: development/iac-building-blocks/.github/workflows/module-aws-smoke-test.yml@main
+    uses: mathworks-ref-arch/iac-building-blocks/.github/workflows/module-aws-smoke-test.yml@main
     with:
       ami_id: ${{ needs.build.outputs.ami_id }}
-      flavor: ${{ inputs.flavor }}
+      refarch_type: ${{ inputs.refarch_type }}
       matlab_version: ${{ inputs.matlab_version }}
       region: ${{ needs.build.outputs.region }}
       metatemplate_file_path: ${{ inputs.metatemplate_file_path }}
@@ -100,11 +96,11 @@ jobs:
 
   release:
     if: ${{ inputs.is_supplementary_build == false }}
-    needs: [build]
-    uses: development/iac-building-blocks/.github/workflows/module-aws-release.yml@main
+    needs: [build, smoke-test]
+    uses: mathworks-ref-arch/iac-building-blocks/.github/workflows/module-aws-release.yml@main
     with:
       ami_id: ${{ needs.build.outputs.ami_id }}
-      flavor: ${{ inputs.flavor }}
+      refarch_type: ${{ inputs.refarch_type }}
       matlab_version: ${{ inputs.matlab_version }}
       source_region: ${{ needs.build.outputs.region }}
       target_regions: ${{ vars.TARGET_REGIONS }}

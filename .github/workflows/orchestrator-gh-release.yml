@@ -12,19 +12,17 @@ on:
         type: string
       s3_bucket_url:
         description: |
-          Base URL of the S3 bucket where release templates are published.
-          Used by the commit job to generate the correct S3 paths when
-          publishing CloudFormation templates for distribution.
+          Base URL of the S3 bucket where release templates are
+          published for distribution.
           Example: "https://s3.amazonaws.com/matlab-on-aws-win"
         required: true
         type: string
       dual_repo_url:
         description: |
           URL of the other OS variant repository for the same product.
-          Used in generated release metadata to cross-link between
-          Linux and Windows variants of the same reference architecture.
-          Example: for matlab-on-aws-win, this would be
-          "https://github.com/mathworks-ref-arch/matlab-on-aws" (the Linux variant)
+          Used to cross-link between Linux and Windows variants of the
+          same reference architecture.
+          Example: "https://github.com/mathworks-ref-arch/matlab-on-aws"
         required: true
         type: string
       artifacts_path:
@@ -36,9 +34,8 @@ on:
         default: ./artifacts
       release_template_name_pattern:
         description: |
-          Glob pattern to identify release template files among downloaded
-          artifacts. Used by the commit job to find and process the correct
-          CloudFormation templates produced by the build stage.
+          Glob pattern to identify release template files among
+          downloaded artifacts.
           Example: "*-release-template.json"
         type: string
         default: "*-release-template.json"
@@ -61,39 +58,31 @@ on:
         description: |
           Display title for the GitHub Release page. Shown in the
           releases UI and notification emails.
-          Example: "Ref Arch Build 42", "R2025a Production Release"
-        default: "Ref Arch Build ${{ github.run_number }}"
+          Example: "MATLAB on AWS Windows - Build 42"
+        required: true
         type: string
-      prerelease:
-        description: |
-          When true, marks the GitHub Release as a pre-release. Pre-releases
-          are visible but not shown as the "latest" release. Use for
-          staging/validation builds that should not be consumed by users.
-        default: false
-        type: boolean
       generate_attestations:
         description: |
           When true, generates SLSA provenance attestations for release
-          artifacts using GitHub's artifact attestations feature. Requires
-          the caller workflow to have `attestations: write` permission.
-          Set to false if your org hasn't enabled attestations.
+          artifacts. Requires the caller workflow to have
+          `attestations: write` permission.
         default: true
         type: boolean
       is_supplementary_build:
         description: |
-          When true, skips the commit-release-files job (no files are
-          committed back to the repo). The GitHub Release is still created.
-          Use for secondary builds (e.g., Windows variant) where the
-          primary pipeline owns the repo commit step.
+          When true, skips committing release files back to the repo.
+          The GitHub Release is still created. Use for secondary builds
+          where the primary pipeline owns the repo commit step.
         type: boolean
+        default: false
 
 jobs:
 
   commit-release-files:
     if: ${{ inputs.is_supplementary_build == false }}
     name: Commit release files into repository
-    uses: development/iac-building-blocks/.github/workflows/module-gh-commit-files.yml@main
-    with: 
+    uses: mathworks-ref-arch/iac-building-blocks/.github/workflows/module-gh-commit-files.yml@main
+    with:
       target_versions: ${{ inputs.target_versions }}
       s3_bucket_url: ${{ inputs.s3_bucket_url }}
       dual_repo_url: ${{ inputs.dual_repo_url }}
@@ -102,13 +91,14 @@ jobs:
     secrets: inherit
 
   publish-release-artifacts:
+    needs: [commit-release-files]
+    if: ${{ !cancelled() && (needs.commit-release-files.result == 'success' || needs.commit-release-files.result == 'skipped') }}
     name: Create Aggregate GH Release
-    uses: development/iac-building-blocks/.github/workflows/module-gh-create-release.yml@main
+    uses: mathworks-ref-arch/iac-building-blocks/.github/workflows/module-gh-create-release.yml@main
     with:
-      release_files_pattern: ${{ inputs.release_files_pattern }} 
+      release_files_pattern: ${{ inputs.release_files_pattern }}
       release_tag: ${{ inputs.release_tag }}
       release_title: ${{ inputs.release_title }}
-      prerelease: ${{ inputs.prerelease }}
+      prerelease: false
       generate_attestations: ${{ inputs.generate_attestations }}
     secrets: inherit
-  
