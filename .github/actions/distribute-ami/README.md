@@ -20,7 +20,7 @@ This action handles the cross-region distribution of a newly minted AMI. It take
 | `source_region` | Yes | The AWS region where the source AMI resides. |
 | `target_regions` | Yes | Comma-separated list of target regions (e.g., `us-east-1,eu-west-1`). |
 | `matlab_version` | Yes | Target MATLAB version, used for artifact naming. |
-| `flavor` | Yes | Architecture flavor (e.g., `matlab-linux`), used for naming. |
+| `refarch_type` | Yes | Architecture type (e.g., `matlab-linux`), used for naming. |
 | `test_mode` | No | Boolean to bypass AWS execution. Defaults to `true`. |
 
 **Outputs:**
@@ -30,13 +30,13 @@ This action handles the cross-region distribution of a newly minted AMI. It take
 ```yaml
 - name: Distribute Built AMI
   id: distribute_ami
-  uses: development/iac-building-blocks/.github/actions/distribute-ami@main
+  uses: mathworks-ref-arch/iac-building-blocks/.github/actions/distribute-ami@main
   with:
     ami_id: 'ami-0123456789abcdef0'
     source_region: 'us-east-1'
     target_regions: 'us-east-2,eu-west-1,ap-south-1'
     matlab_version: 'R2025a'
-    flavor: 'matlab-linux'
+    refarch_type: 'matlab-linux'
     test_mode: false
 
 ```

@@ -13,7 +13,7 @@ inputs:
   matlab_version:
     description: 'Used for naming the AMIs'
     required: true
-  flavor:
+  refarch_type:
     description: 'Used for naming the AMIs'
     required: true
   test_mode:
@@ -47,7 +47,7 @@ runs:
         INPUT_SRC: ${{ inputs.source_region }}
         INPUT_DEST: ${{ inputs.target_regions }}
         INPUT_VER: ${{ inputs.matlab_version }}
-        INPUT_FLAVOR: ${{ inputs.flavor }}
+        INPUT_REFARCH_TYPE: ${{ inputs.refarch_type }}
         INPUT_TEST: ${{ inputs.test_mode }}
       run: |
         # Construct flag for test mode
@@ -61,5 +61,5 @@ runs:
           --src-region "$INPUT_SRC" \
           --dest-regions "$INPUT_DEST" \
           --version "$INPUT_VER" \
-          --flavor "$INPUT_FLAVOR" \
+          --refarch-type "$INPUT_REFARCH_TYPE" \
           $TEST_FLAG

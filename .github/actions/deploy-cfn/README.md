@@ -7,7 +7,7 @@ This action deploys an ephemeral CloudFormation stack for integration and smoke 
 
 ### The Workflow
 
-1. **Flavor Resolution:** Reads `flavor-mappings.json` to lookup the default parameter values and variable names (like identifying whether to use `SSHKeyName` or `RDPKeyName`) for the requested `flavor`.
+1. **Type Resolution:** Reads `refarch-type-mappings.json` to lookup the default parameter values and variable names (like identifying whether to use `SSHKeyName` or `RDPKeyName`) for the requested `refarch_type`.
 2. **Dynamic Parameter Injection:** Fetches the GitHub Runner's current IP address and injects it, along with standard inputs (VPC, Subnet, SSH Key), into a generated `params.json` file.
 3. **Execution:** Triggers `aws cloudformation create-stack` and blocks until the `stack-create-complete` signal is received.
 4. **Data Retrieval:** Parses the final CloudFormation stack outputs into a flattened JSON key-value string.
@@ -17,7 +17,7 @@ This action deploys an ephemeral CloudFormation stack for integration and smoke 
 | Input | Required | Description |
 | --- | --- | --- |
 | `template_file_path` | Yes | Path to the compiled CloudFormation template. |
-| `flavor` | Yes | Target deployment flavor matching a key in `flavor-mappings.json`. |
+| `refarch_type` | Yes | Target deployment architecture type matching a key in `refarch-type-mappings.json`. |
 | `region` | Yes | AWS region to deploy the stack into. |
 | `stack_name` | Yes | Unique identifier for the temporary stack. |
 | `vpc_id` / `subnet_id` | Yes | Network configuration for the deployment. |
@@ -32,10 +32,10 @@ This action deploys an ephemeral CloudFormation stack for integration and smoke 
 ```yaml
 - name: Deploy Ephemeral Stack
   id: deploy
-  uses: development/iac-building-blocks/.github/actions/deploy-cfn@main
+  uses: mathworks-ref-arch/iac-building-blocks/.github/actions/deploy-cfn@main
   with:
     template_file_path: './R2025a-test-template.json'
-    flavor: 'matlab-linux'
+    refarch_type: 'matlab-linux'
     region: 'us-east-1'
     stack_name: 'smoke-test-stack-12345'
     vpc_id: 'vpc-0abcd1234'

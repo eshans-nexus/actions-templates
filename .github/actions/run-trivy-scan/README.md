@@ -29,7 +29,7 @@ This action performs a runtime security audit on our provisioned infrastructure.
 
 ```yaml
 - name: Execute Security Scan
-  uses: development/iac-building-blocks/.github/actions/run-trivy-scan@main
+  uses: mathworks-ref-arch/iac-building-blocks/.github/actions/run-trivy-scan@main
   with:
     hostname: 'ec2-198-51-100-1.compute-1.amazonaws.com'
     username: 'ubuntu'

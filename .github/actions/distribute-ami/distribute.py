@@ -10,7 +10,7 @@ def get_args():
     parser.add_argument('--src-region', required=True)
     parser.add_argument('--dest-regions', required=True, help="Comma separated list")
     parser.add_argument('--version', required=True, help="Matlab version for naming")
-    parser.add_argument('--flavor', required=True, help="Refarch flavor for naming")
+    parser.add_argument('--refarch-type', required=True, help="Refarch type for naming")
     parser.add_argument('--test-mode', action='store_true')
     return parser.parse_args()
 
@@ -70,7 +70,7 @@ def main():
             print(f"Copying {src_ami} to {dest_region}...")
             response = ec2.copy_image(
                 Description=f"[Copied {src_ami} from {src_region}]",
-                Name=f"{args.version}-{args.flavor}-{int(time.time())}", # Unique name to prevent collision
+                Name=f"{args.version}-{args.refarch_type}-{int(time.time())}",
                 SourceImageId=src_ami,
                 SourceRegion=src_region
             )
