@@ -1,4 +1,4 @@
-name: 'Utility: Calculate Version Matrix'
+name: 'Utility: Calculate MATLAB Version Matrix'
 
 on:
   workflow_call:
@@ -19,7 +19,7 @@ on:
 
 jobs:
   calculate:
-    name: Generate Matrix
+    name: Generate Version Matrix
     runs-on: ubuntu-latest
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
