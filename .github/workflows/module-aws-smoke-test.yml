@@ -82,6 +82,14 @@ jobs:
           subnet_id: ${{ secrets.TEST_SUBNET_ID }}
           key_name: ${{ vars.EC2_KEY_NAME }}
 
+      - name: Run Smoke Tests
+        id: smoke-test
+        uses: mathworks-ref-arch/iac-building-blocks/.github/actions/run-smoke-tests@main
+        with:
+          region: ${{ inputs.region }}
+          stack_name: ${{ env.STACK_NAME }}
+          matlab_license_string: ${{ secrets.MATLAB_LICENSE_STRING }}
+
       - name: Prepare Scan Inputs
         if: inputs.run_security_scan
         id: prep_scan
