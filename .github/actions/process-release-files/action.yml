@@ -1,3 +1,4 @@
+# Copyright 2026 The MathWorks, Inc.
 name: 'Process Release Files'
 description: 'Generates READMEs, organizes artifacts, and updates root files based on templates.'
 

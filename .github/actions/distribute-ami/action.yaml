@@ -1,3 +1,4 @@
+# Copyright 2026 The MathWorks, Inc.
 name: 'Distribute AMI'
 description: 'Copies a source AMI to multiple regions and outputs a CloudFormation RegionMap.'
 inputs:

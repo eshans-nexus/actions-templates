@@ -1,3 +1,4 @@
+# Copyright 2026 The MathWorks, Inc.
 import os
 import json
 import copy

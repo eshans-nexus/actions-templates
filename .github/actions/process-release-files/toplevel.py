@@ -1,5 +1,6 @@
+# Copyright 2026 The MathWorks, Inc.
 import utils
-import json  # 1. Import json
+import json
 from datetime import datetime
 
 def process_readme(template_env, releases_data, dual_repo_url, readme_path):

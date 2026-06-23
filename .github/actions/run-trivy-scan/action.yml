@@ -1,3 +1,4 @@
+# Copyright 2026 The MathWorks, Inc.
 name: 'Run Trivy Scan (SSM)'
 description: 'Generic action to install and run Trivy via AWS SSM on a target host.'
 

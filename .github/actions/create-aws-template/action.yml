@@ -1,3 +1,4 @@
+# Copyright 2026 The MathWorks, Inc.
 name: 'Create AWS Template'
 description: 'Generates a CloudFormation template by injecting a RegionMap.'
 

@@ -1,3 +1,4 @@
+# Copyright 2026 The MathWorks, Inc.
 name: 'Deploy CloudFormation Stack'
 description: 'Downloads template, maps parameters, and deploys stack'
 

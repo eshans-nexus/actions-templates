@@ -1,3 +1,4 @@
+# Copyright 2026 The MathWorks, Inc.
 import boto3
 import argparse
 import json
