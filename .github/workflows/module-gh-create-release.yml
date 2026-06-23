@@ -1,3 +1,4 @@
+# Copyright 2026 The MathWorks, Inc.
 name: 'Module: GitHub Release'
 
 on:
@@ -93,7 +94,7 @@ jobs:
           echo "EOF" >> $GITHUB_OUTPUT
 
       - name: Create Release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ inputs.release_tag }}
           name: ${{ inputs.release_title || inputs.release_tag }}

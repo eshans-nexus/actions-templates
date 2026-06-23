@@ -1,3 +1,4 @@
+# Copyright 2026 The MathWorks, Inc.
 name: 'Module: Commit Release Files'
 
 on:
@@ -52,7 +53,7 @@ jobs:
           dual_repo_url: ${{ inputs.dual_repo_url }}
 
       - name: Commit and Push
-        uses: stefanzweifel/git-auto-commit-action@v5
+        uses: stefanzweifel/git-auto-commit-action@v6
         with:
           commit_message: "Automated update of release artifacts and documentation"
           file_pattern: 'releases/ README.md LICENSE.md permission.md SECURITY.md'
