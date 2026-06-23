@@ -1,3 +1,4 @@
+# Copyright 2026 The MathWorks, Inc.
 name: 'Module: Packer Build (AWS)'
 
 on:
@@ -19,7 +20,7 @@ on:
         description: "The region where the AMI was built"
         value: ${{ jobs.build.outputs.region }}
 env:
-    PACKER_VERSION: '1.10.2'
+    PACKER_VERSION: ${{ vars.PACKER_VERSION || '1.15.4' }}
     PACKER_MANIFEST_FILENAME: "${{ inputs.matlab_version }}-manifest.json"
     PACKER_LOG_FILENAME: "${{ inputs.matlab_version }}-packer-build.log"
     PACKER_ARTIFACT_NAME: "${{ inputs.matlab_version }}-packer-artifacts"
