@@ -37,7 +37,7 @@ jobs:
       ami_id: ${{ steps.export.outputs.ami_id }}
       region: ${{ steps.export.outputs.region }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Configure AWS Credentials
         if: inputs.skip_build == false
@@ -106,7 +106,7 @@ jobs:
           echo "region=$(echo $FULL_ID | cut -d':' -f1)" >> $GITHUB_OUTPUT
       
       - name: Upload Packer Artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: ${{ env.PACKER_ARTIFACT_NAME }}
           path: |

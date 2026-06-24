@@ -59,8 +59,8 @@ jobs:
           refarch_type: ${{ inputs.refarch_type }}
           test_mode: true
       
-      - uses: actions/checkout@v4
-      
+      - uses: actions/checkout@v5
+
       - name: Generate Release Template
         uses: mathworks-ref-arch/iac-building-blocks/.github/actions/create-aws-template@main
         with:

@@ -53,7 +53,7 @@ jobs:
             exit 1
           fi
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Generate test template
         uses: mathworks-ref-arch/iac-building-blocks/.github/actions/create-aws-template@main
