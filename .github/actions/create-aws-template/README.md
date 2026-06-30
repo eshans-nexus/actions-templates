@@ -8,8 +8,9 @@ This action acts as the template compiler for our CloudFormation infrastructure.
 ### The Workflow
 
 1. **Dependency Verification:** Ensures `jq` is installed on the runner.
-2. **Injection:** Reads the provided `region_map` string and securely injects it into the `.Mappings.RegionMap` block of the source meta-template. This overrides any placeholder mappings.
-3. **Artifact Publishing:** Uploads the newly generated CloudFormation template as a GitHub Actions artifact for downstream jobs (like deployment or release aggregation) to consume.
+2. **Region Map Injection:** Reads the provided `region_map` string and injects it into the `.Mappings.RegionMap` block of the source meta-template. This overrides any placeholder mappings.
+3. **Lambda Code Injection:** For each entry in `lambda_injections`, reads the source file and injects its contents into `.Resources[<ResourceName>].Properties.Code.ZipFile`. Errors if the resource is missing from the template or the source file does not exist.
+4. **Artifact Publishing:** Uploads the newly generated CloudFormation template as a GitHub Actions artifact for downstream jobs (like deployment or release aggregation) to consume.
 
 ### Inputs & Outputs
 
@@ -19,6 +20,7 @@ This action acts as the template compiler for our CloudFormation infrastructure.
 | `output_filename` | Yes | The desired filename for the compiled template. |
 | `artifact_name` | Yes | The name under which to upload the GitHub artifact. |
 | `metatemplate_file_path` | Yes | Relative path to the source JSON meta-template. |
+| `lambda_injections` | No | JSON object mapping Lambda resource logical IDs to source files to embed. Defaults to `'{}'`. |
 
 ### Example Usage
 
@@ -30,6 +32,7 @@ This action acts as the template compiler for our CloudFormation infrastructure.
     output_filename: 'R2025a-release-template.json'
     artifact_name: 'R2025a-release-template'
     metatemplate_file_path: 'src/meta-template.json'
+    lambda_injections: '{"AttachInstanceProfileLambda": "src/attachinstanceprofile.py"}'
 
 ```
 

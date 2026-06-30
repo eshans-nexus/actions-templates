@@ -1,3 +1,4 @@
+# Copyright 2026 The MathWorks, Inc.
 name: 'Run Smoke Tests'
 description: 'Runs pytest-based smoke tests against a live CloudFormation stack deployment.'
 
@@ -30,7 +31,7 @@ runs:
     - name: Set up Python
       uses: actions/setup-python@v6
       with:
-        python-version: '3.11'
+        python-version: ${{ vars.PYTHON_VERSION || '3.11' }}
 
     - name: Install dependencies
       shell: bash

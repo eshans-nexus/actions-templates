@@ -3,34 +3,26 @@
     "key_param": "SSHKeyName",
     "vpc_param": "VPC",
     "subnet_param": "Subnet",
-    "ami_param": "CustomAmiId",
     "client_ip_param": "ClientIPAddress",
     "defaults": [
       { "ParameterKey": "InstanceType", "ParameterValue": "t3.medium" },
-      { "ParameterKey": "AutoShutdown", "ParameterValue": "Never" },
-      { "ParameterKey": "ClientIPAddress", "ParameterValue": "" },
-      { "ParameterKey": "Password", "ParameterValue": "MathWorks!1234" },
-      { "ParameterKey": "ConfirmPassword", "ParameterValue": "MathWorks!1234" }
+      { "ParameterKey": "AutoShutdown", "ParameterValue": "Never" }
     ]
   },
   "matlab-windows": {
     "key_param": "RDPKeyName",
     "vpc_param": "VPC",
     "subnet_param": "Subnet",
-    "ami_param": "CustomAmiId",
     "client_ip_param": "ClientIPAddress",
     "defaults": [
       { "ParameterKey": "InstanceType", "ParameterValue": "t3.xlarge" },
-      { "ParameterKey": "AutoShutdown", "ParameterValue": "After 1 hour" },
-      { "ParameterKey": "Password", "ParameterValue": "MathWorks!1234" },
-      { "ParameterKey": "ConfirmPassword", "ParameterValue": "MathWorks!1234" }
+      { "ParameterKey": "AutoShutdown", "ParameterValue": "After 1 hour" }
     ]
   },
   "ps-linux": {
     "key_param": "SSHKeyName",
     "vpc_param": "VPC",
     "subnet_param": "Subnets",
-    "ami_param": "InstanceAmiCustom",
     "client_ip_param": "ClientIPAddress",
     "defaults": [
       { "ParameterKey": "HeadnodeInstanceType", "ParameterValue": "t3.medium" },
@@ -44,7 +36,6 @@
     "key_param": "RDPKeyName",
     "vpc_param": "VPC",
     "subnet_param": "Subnets",
-    "ami_param": "InstanceAmiCustom",
     "client_ip_param": "ClientIPAddress",
     "defaults": [
       { "ParameterKey": "HeadnodeInstanceType", "ParameterValue": "t3.xlarge" },
@@ -61,9 +52,7 @@
     "client_ip_param": "ClientIPAddress",
     "defaults": [
       { "ParameterKey": "ServerInstanceType", "ParameterValue": "t3.micro" },
-      { "ParameterKey": "EnablePublicIPAddress", "ParameterValue": "Yes" },
-      { "ParameterKey": "Password", "ParameterValue": "MathWorks!123" },
-      { "ParameterKey": "ConfirmPassword", "ParameterValue": "MathWorks!123" }
+      { "ParameterKey": "EnablePublicIPAddress", "ParameterValue": "Yes" }
     ]
   }
 }

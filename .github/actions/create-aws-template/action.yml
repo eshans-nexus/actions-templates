@@ -15,10 +15,14 @@ inputs:
   metatemplate_file_path:
     description: 'Path to the source JSON meta-template file'
     required: true
-  lambda_code_file:
-    description: 'Path to a Python file whose contents will be injected into the Lambda ZipFile field'
+  lambda_injections:
+    description: |
+      JSON object mapping Lambda resource logical IDs in the template to
+      source files whose contents are injected into Code.ZipFile.
+      Example: '{"AttachInstanceProfileLambda": "src/attachinstanceprofile.py"}'
+      Pass '{}' or omit when the template has no Lambda code to inject.
     required: false
-    default: ''
+    default: '{}'
 
 runs:
   using: "composite"
@@ -29,7 +33,7 @@ runs:
         TEMPLATE: ${{ inputs.metatemplate_file_path }}
         REGION_MAP: ${{ inputs.region_map }}
         OUT_NAME: ${{ inputs.output_filename }}
-        LAMBDA_CODE_FILE: ${{ inputs.lambda_code_file }}
+        LAMBDA_INJECTIONS: ${{ inputs.lambda_injections }}
       run: |
         if ! command -v jq &> /dev/null; then
             echo "jq not found, installing..."
@@ -62,16 +66,28 @@ runs:
 
         rm region_map_temp.json
 
-        if [ -n "$LAMBDA_CODE_FILE" ] && [ -f "$LAMBDA_CODE_FILE" ]; then
-            echo "Injecting Lambda code from $LAMBDA_CODE_FILE..."
-            jq --rawfile code "$LAMBDA_CODE_FILE" \
-               '.Resources.AttachInstanceProfileLambda.Properties.Code.ZipFile = $code' \
-               "$OUT_NAME" > "${OUT_NAME}.tmp"
-            mv "${OUT_NAME}.tmp" "$OUT_NAME"
-        elif [ -n "$LAMBDA_CODE_FILE" ]; then
-            echo "::error::lambda_code_file specified but not found: $LAMBDA_CODE_FILE"
+        INJECTIONS="${LAMBDA_INJECTIONS:-{\}}"
+        if ! echo "$INJECTIONS" | jq -e 'type == "object"' >/dev/null 2>&1; then
+            echo "::error::lambda_injections is not a valid JSON object: $INJECTIONS"
             exit 1
         fi
+
+        while IFS=$'\t' read -r resource code_file; do
+            [ -z "$resource" ] && continue
+            if [ ! -f "$code_file" ]; then
+                echo "::error::Lambda code file not found for $resource: $code_file"
+                exit 1
+            fi
+            if ! jq -e --arg r "$resource" '.Resources[$r]' "$OUT_NAME" >/dev/null; then
+                echo "::error::Resource $resource not found in template $OUT_NAME"
+                exit 1
+            fi
+            echo "Injecting Lambda code into $resource from $code_file..."
+            jq --arg r "$resource" --rawfile code "$code_file" \
+               '.Resources[$r].Properties.Code.ZipFile = $code' \
+               "$OUT_NAME" > "${OUT_NAME}.tmp"
+            mv "${OUT_NAME}.tmp" "$OUT_NAME"
+        done < <(echo "$INJECTIONS" | jq -r 'to_entries[] | "\(.key)\t\(.value)"')
 
         echo "Generated: $OUT_NAME"
 

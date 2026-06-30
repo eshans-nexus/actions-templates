@@ -66,33 +66,13 @@ def main():
 
     if status != "Success":
         print(f"::error::SSM Command failed with status: {status}")
-        
-        # Fetch and print the actual error logs from the instance
-        print("Fetching error logs from SSM...")
-        try:
-            error_invocation = ssm.get_command_invocation(
-                CommandId=command_id,
-                InstanceId=args.instance_id
-            )
-            print("\n=== STANDARD ERROR ===")
-            print(error_invocation.get("StandardErrorContent", "No error output provided."))
-            print("\n=== STANDARD OUTPUT ===")
-            print(error_invocation.get("StandardOutputContent", "No standard output provided."))
-        except Exception as e:
-            print(f"Could not retrieve error logs: {e}")
-            
+        print("\n=== STANDARD ERROR ===")
+        print(invocation.get("StandardErrorContent", "No error output provided."))
+        print("\n=== STANDARD OUTPUT ===")
+        print(invocation.get("StandardOutputContent", "No standard output provided."))
         sys.exit(1)
 
-    print("Fetching processed Markdown output...")
-    try:
-        final_invocation = ssm.get_command_invocation(
-            CommandId=command_id,
-            InstanceId=args.instance_id
-        )
-        output_content = final_invocation.get("StandardOutputContent", "").strip()
-    except Exception as e:
-        print(f"::error::Failed to fetch final output: {e}")
-        sys.exit(1)
+    output_content = invocation.get("StandardOutputContent", "").strip()
 
     if not output_content:
         print("::warning::SSM command returned empty output. The scan may have failed silently.")
@@ -102,12 +82,12 @@ def main():
     summary_file = os.environ.get("GITHUB_STEP_SUMMARY")
     if summary_file:
         with open(summary_file, "a") as f:
-            f.write(f"## 🛡️ Trivy Security Scan Results\n")
+            f.write(f"## Trivy Security Scan Results\n")
             f.write(f"**Asset:** `{args.asset_name}` | **OS:** `{args.os_type}`\n\n")
             f.write(output_content + "\n")
     else:
         # Fallback for local testing if GITHUB_STEP_SUMMARY is not set
-        print("\n## 🛡️ Trivy Security Scan Results")
+        print("\n## Trivy Security Scan Results")
         print(f"**Asset:** `{args.asset_name}` | **OS:** `{args.os_type}`\n")
         print(output_content)
     

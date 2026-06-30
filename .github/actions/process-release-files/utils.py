@@ -11,7 +11,7 @@ def deserialize_target_versions(target_versions_string:str ) -> List[str]:
     try:
         return json.loads(target_versions_string)
     except json.JSONDecodeError:
-        print(f"❌ Error: --target-versions must be a valid JSON list. Got: {target_versions_string}")
+        print(f"Error: --target-versions must be a valid JSON list. Got: {target_versions_string}")
         sys.exit(1)
 
 def calculate_removal_date(matlab_version: str) -> Dict[str, str]:
