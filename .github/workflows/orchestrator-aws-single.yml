@@ -61,16 +61,16 @@ on:
         required: false
         type: boolean
         default: false
-      lambda_code_file:
+      lambda_injections:
         description: |
-          Relative path to a Lambda function source file to embed in
-          the release template. If empty, no Lambda code is included.
-          Used by products that bundle a custom Lambda within their
-          deployment stack.
-          Example: "src/attachinstanceprofile.py"
+          JSON object mapping Lambda resource logical IDs in the
+          CloudFormation template to source files to embed in their
+          Code.ZipFile fields. Pass '{}' or omit when the template
+          has no Lambda code to inject.
+          Example: '{"AttachInstanceProfileLambda": "src/attachinstanceprofile.py"}'
         required: false
         type: string
-        default: ''
+        default: '{}'
 
 jobs:
   build:
@@ -92,7 +92,7 @@ jobs:
       region: ${{ needs.build.outputs.region }}
       metatemplate_file_path: ${{ inputs.metatemplate_file_path }}
       run_security_scan: ${{ vars.RUN_SECURITY_SCAN == 'true' }}
-      lambda_code_file: ${{ inputs.lambda_code_file }}
+      lambda_injections: ${{ inputs.lambda_injections }}
     secrets: inherit
 
   release:
@@ -106,5 +106,5 @@ jobs:
       source_region: ${{ needs.build.outputs.region }}
       target_regions: ${{ vars.TARGET_REGIONS }}
       metatemplate_file_path: ${{ inputs.metatemplate_file_path }}
-      lambda_code_file: ${{ inputs.lambda_code_file }}
+      lambda_injections: ${{ inputs.lambda_injections }}
     secrets: inherit
