@@ -2,7 +2,7 @@
   "linux": {
     "document_name": "AWS-RunShellScript",
     "commands": [
-      "curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/v0.49.1/contrib/install.sh | sudo sh -s -- -b /usr/local/bin v0.49.1 > /dev/null 2>&1",
+      "curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/v0.71.2/contrib/install.sh | sudo sh -s -- -b /usr/local/bin v0.71.2 > /dev/null 2>&1",
       "sudo /usr/local/bin/trivy fs / --scanners vuln --severity HIGH,CRITICAL --ignore-unfixed --format json > /tmp/report.json 2>/dev/null",
       "sudo DEBIAN_FRONTEND=noninteractive apt-get update -qq > /dev/null 2>&1",
       "sudo DEBIAN_FRONTEND=noninteractive apt-get install -y jq -qq > /dev/null 2>&1",
@@ -13,7 +13,7 @@
     "document_name": "AWS-RunPowerShellScript",
     "commands": [
       "$ProgressPreference = 'SilentlyContinue'; [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12;",
-      "$Url = 'https://github.com/aquasecurity/trivy/releases/download/v0.49.1/trivy_0.49.1_windows-64bit.zip'; $Zip = 'C:\\trivy.zip'; $Dest = 'C:\\trivy';",
+      "$Url = 'https://github.com/aquasecurity/trivy/releases/download/v0.71.2/trivy_0.71.2_windows-64bit.zip'; $Zip = 'C:\\trivy.zip'; $Dest = 'C:\\trivy';",
       "if (-not (Test-Path $Dest)) { Invoke-WebRequest -Uri $Url -OutFile $Zip | Out-Null; Expand-Archive -Path $Zip -DestinationPath $Dest -Force | Out-Null; };",
       "& C:\\trivy\\trivy.exe fs C:\\ --scanners vuln --severity HIGH,CRITICAL --ignore-unfixed --format json > C:\\report.json 2>$null",
       "$report = Get-Content C:\\report.json -Raw | ConvertFrom-Json;",
