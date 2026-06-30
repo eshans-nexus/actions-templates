@@ -22,10 +22,14 @@ on:
       run_security_scan:
         required: true
         type: boolean
-      lambda_code_file:
+      lambda_injections:
+        description: |
+          JSON object mapping Lambda resource logical IDs in the template
+          to source files to embed in their Code.ZipFile fields. Pass
+          '{}' or omit when the template has no Lambda code to inject.
         required: false
         type: string
-        default: ''
+        default: '{}'
 
 env:
   METATEMPLATE_PATH: "./${{ inputs.metatemplate_file_path }}"
@@ -63,7 +67,7 @@ jobs:
           output_filename: ${{ env.TEMPLATE_FILENAME }}
           artifact_name: ${{ env.TEST_ARTIFACT_NAME }}
           metatemplate_file_path: ${{ env.METATEMPLATE_PATH }}
-          lambda_code_file: ${{ inputs.lambda_code_file }}
+          lambda_injections: ${{ inputs.lambda_injections }}
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
