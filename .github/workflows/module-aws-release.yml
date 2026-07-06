@@ -52,23 +52,23 @@ jobs:
             exit 1
           fi
 
-      - name: Distribute AMI
-        id: distribute_ami
-        uses: mathworks-ref-arch/iac-building-blocks/.github/actions/distribute-ami@main
+      - name: Publish AMI
+        id: publish_ami
+        uses: mathworks-ref-arch/iac-building-blocks/.github/actions/publish-ami@main
         with:
           ami_id: ${{ inputs.ami_id }}
-          source_region: ${{ inputs.source_region }}
-          target_regions: ${{ inputs.target_regions }}
+          source_ami_region: ${{ inputs.source_region }}
+          target_ami_regions: ${{ inputs.target_regions }}
           matlab_version: ${{ inputs.matlab_version }}
           refarch_type: ${{ inputs.refarch_type }}
           test_mode: true
-      
+
       - uses: actions/checkout@v5
 
       - name: Generate Release Template
         uses: mathworks-ref-arch/iac-building-blocks/.github/actions/create-aws-template@main
         with:
-          region_map: ${{ steps.distribute_ami.outputs.region_map_json }}
+          region_map: ${{ steps.publish_ami.outputs.region_map_json }}
           output_filename: ${{ env.TEMPLATE_FILENAME }}
           artifact_name: ${{ env.RELEASE_ARTIFACT_NAME }}
           metatemplate_file_path: ${{ env.METATEMPLATE_PATH }}

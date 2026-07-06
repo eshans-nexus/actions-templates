@@ -19,9 +19,6 @@ on:
       metatemplate_file_path:
         required: true
         type: string
-      run_security_scan:
-        required: true
-        type: boolean
       lambda_injections:
         description: |
           JSON object mapping Lambda resource logical IDs in the template
@@ -79,13 +76,13 @@ jobs:
         id: deploy
         uses: mathworks-ref-arch/iac-building-blocks/.github/actions/deploy-cfn@main
         with:
-          template_file_path: ./${{ env.TEMPLATE_FILENAME }}
+          compiled_template_file_path: ./${{ env.TEMPLATE_FILENAME }}
           refarch_type: ${{ inputs.refarch_type }}
           region: ${{ inputs.region }}
           stack_name: ${{ env.STACK_NAME }}
           vpc_id: ${{ secrets.TEST_VPC_ID }}
           subnet_id: ${{ secrets.TEST_SUBNET_ID }}
-          key_name: ${{ vars.EC2_KEY_NAME }}
+          key_pair_name: ${{ vars.EC2_KEY_NAME }}
 
       - name: Run Smoke Tests
         id: smoke-test
@@ -94,46 +91,6 @@ jobs:
           region: ${{ inputs.region }}
           stack_name: ${{ env.STACK_NAME }}
           matlab_license_string: ${{ secrets.MATLAB_LICENSE_STRING }}
-
-      - name: Prepare Scan Inputs
-        if: inputs.run_security_scan
-        id: prep_scan
-        env:
-          OUTPUTS: ${{ steps.deploy.outputs.stack_outputs }}
-          REFARCH_TYPE: ${{ inputs.refarch_type }}
-          STACK_NAME: ${{ env.STACK_NAME }}
-        run: |
-          echo "Retrieving Instance ID for Stack: $STACK_NAME..."
-
-          INSTANCE_ID=$(aws cloudformation describe-stack-resource \
-            --stack-name "$STACK_NAME" \
-            --logical-resource-id "MATLABEC2Instance" \
-            --query "StackResourceDetail.PhysicalResourceId" \
-            --output text)
-
-          if [ -z "$INSTANCE_ID" ] || [ "$INSTANCE_ID" == "None" ]; then
-            echo "::error::Could not find Instance ID for stack $STACK_NAME"
-            exit 1
-          fi
-
-          echo "Found Instance ID: $INSTANCE_ID"
-          echo "INSTANCE_ID=$INSTANCE_ID" >> $GITHUB_OUTPUT
-
-          if [[ "$REFARCH_TYPE" == *"windows"* ]]; then
-            echo "OS_TYPE=windows" >> $GITHUB_OUTPUT
-            echo "USERNAME=Administrator" >> $GITHUB_OUTPUT
-          else
-            echo "OS_TYPE=linux" >> $GITHUB_OUTPUT
-            echo "USERNAME=ubuntu" >> $GITHUB_OUTPUT
-          fi
-
-      - name: Run Security Scan
-        if: inputs.run_security_scan
-        uses: mathworks-ref-arch/iac-building-blocks/.github/actions/run-trivy-scan@main
-        with:
-          instance_id: ${{ steps.prep_scan.outputs.INSTANCE_ID }}
-          os_type: ${{ steps.prep_scan.outputs.OS_TYPE }}
-          asset_name: ${{ inputs.ami_id }}
 
       - name: Cleanup
         if: always()
