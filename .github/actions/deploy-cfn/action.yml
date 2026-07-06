@@ -3,20 +3,26 @@ name: 'Deploy CloudFormation Stack'
 description: 'Downloads template, maps parameters, and deploys stack'
 
 inputs:
-  template_file_path:
+  compiled_template_file_path:
+    description: "Path to the already-compiled CloudFormation template to deploy"
     required: true
   refarch_type:
     description: "Deployment architecture type (e.g., ps-linux, matlab-linux)"
     required: true
   region:
+    description: "AWS region to deploy the stack into"
     required: true
   stack_name:
+    description: "Unique name for the temporary CloudFormation stack"
     required: true
   vpc_id:
+    description: "VPC to deploy the stack into"
     required: true
   subnet_id:
+    description: "Subnet to deploy the stack into"
     required: true
-  key_name:
+  key_pair_name:
+    description: "Name of the pre-provisioned AWS EC2 key pair for instance access"
     required: true
 
 outputs:
@@ -76,7 +82,7 @@ runs:
         REFARCH_TYPE: ${{ inputs.refarch_type }}
         VPC: ${{ inputs.vpc_id }}
         SUBNET: ${{ inputs.subnet_id }}
-        KEY: ${{ inputs.key_name }}
+        KEY: ${{ inputs.key_pair_name }}
         CLIENT_IP: "${{ steps.get-ip.outputs.ipv4 }}/32"
         STACK_PASSWORD: ${{ steps.gen-password.outputs.password }}
         CONFIG_FILE: "${{ github.action_path }}/refarch-type-mappings.json"
@@ -107,7 +113,7 @@ runs:
     - name: Deploy Stack
       shell: bash
       run: |
-        TEMPLATE_FILE="${{ inputs.template_file_path }}"
+        TEMPLATE_FILE="${{ inputs.compiled_template_file_path }}"
         
         if [[ ! -f "$TEMPLATE_FILE" ]]; then
           echo "::error::Template file not found at $TEMPLATE_FILE"

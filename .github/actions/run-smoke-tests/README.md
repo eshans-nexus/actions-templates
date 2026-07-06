@@ -8,7 +8,7 @@ This action executes pytest-based end-to-end smoke tests against a live CloudFor
 ### The Workflow
 
 1. **Validation:** Confirms the test directory and its `requirements.txt` exist before proceeding.
-2. **Environment Setup:** Installs Python 3.11 and test dependencies from the e2e requirements file.
+2. **Environment Setup:** Installs Python (via the shared `PYTHON_VERSION` variable) and test dependencies from the e2e requirements file.
 3. **Execution:** Runs `pytest` against the deployed stack, passing the stack name and region as CLI arguments and injecting the MATLAB license string as an environment variable.
 
 ### Inputs & Outputs
@@ -30,3 +30,10 @@ This action executes pytest-based end-to-end smoke tests against a live CloudFor
     stack_name: 'test-stack-12345'
     matlab_license_string: ${{ secrets.MATLAB_LICENSE_STRING }}
 ```
+
+----
+
+Copyright 2026 The MathWorks, Inc.
+
+----
+

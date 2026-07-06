@@ -1,4 +1,11 @@
 # Copyright 2026 The MathWorks, Inc.
+"""Render the per-release files for the released repository.
+
+For each target version, locates the built CloudFormation template, parses its
+regions and parameters, and renders the release README from the Jinja2
+template. Returns the rendered README plus the raw template content for each
+release so the caller can lay them out on disk.
+"""
 import utils
 import os
 
@@ -45,7 +52,7 @@ def process_single_release(template_env, version, artifact_dir, s3_bucket_url, r
         readme_path     = release_readme_template_path
         )
 
-    # 5. Read the Raw CF Template Content (to save it later)
+    # Read the raw CF template content so the caller can write it to disk.
     with open(cft_path, 'r', encoding='utf-8') as f:
         cft_content = f.read()
 

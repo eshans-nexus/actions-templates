@@ -36,7 +36,12 @@ This action handles the final documentation assembly prior to a GitHub Release. 
     source_path: './src'
     artifact_path: './artifacts'
     s3_bucket_url: 's3://my-prod-bucket/templates/'
-    dual_repo_url: '[https://github.com/my-org/sister-repo](https://github.com/my-org/sister-repo)'
+    dual_repo_url: 'https://github.com/my-org/sister-repo'
 
 ```
 
+----
+
+Copyright 2026 The MathWorks, Inc.
+
+----

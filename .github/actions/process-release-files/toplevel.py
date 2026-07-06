@@ -1,4 +1,10 @@
 # Copyright 2026 The MathWorks, Inc.
+"""Render the top-level files for the released repository.
+
+Generates the repository-root README, the permissions document (with
+admin-level IAM actions stripped from the provisioning policy), and the LICENSE
+file from their Jinja2 templates.
+"""
 import utils
 import json
 from datetime import datetime

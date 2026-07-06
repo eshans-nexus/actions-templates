@@ -1,4 +1,11 @@
 # Copyright 2026 The MathWorks, Inc.
+"""Entry point for the process-release-files action.
+
+Orchestrates generation of the released repository layout: renders the
+top-level files (README, permissions, LICENSE) via ``toplevel``, renders the
+per-release files (README + CloudFormation template) via ``release``, then
+writes the resulting virtual filesystem to the output directory.
+"""
 import os
 import argparse
 import jinja2

@@ -1,15 +1,15 @@
 # Copyright 2026 The MathWorks, Inc.
-name: 'Distribute AMI'
-description: 'Copies a source AMI to multiple regions and outputs a CloudFormation RegionMap.'
+name: 'Publish AMI'
+description: 'Copies a source AMI to multiple regions, makes the copies public, and outputs a CloudFormation RegionMap.'
 inputs:
   ami_id:
     description: 'The Source AMI ID'
     required: true
-  source_region:
-    description: 'The Region where source AMI exists'
+  source_ami_region:
+    description: 'The region where the source AMI exists'
     required: true
-  target_regions:
-    description: 'Comma-separated list of regions (e.g. us-east-2,eu-west-1)'
+  target_ami_regions:
+    description: 'Comma-separated list of regions to publish the AMI to (e.g. us-east-2,eu-west-1)'
     required: true
   matlab_version:
     description: 'Used for naming the AMIs'
@@ -25,7 +25,7 @@ inputs:
 outputs:
   region_map_json:
     description: "JSON string formatted as { RegionMap: { region: { AMI: id } } }"
-    value: ${{ steps.distribute.outputs.region_map_json }}
+    value: ${{ steps.publish.outputs.region_map_json }}
 
 runs:
   using: "composite"
@@ -40,13 +40,13 @@ runs:
       run: |
         pip install boto3
 
-    - name: Run Distribution Script
-      id: distribute
+    - name: Run Publish Script
+      id: publish
       shell: bash
       env:
         INPUT_AMI: ${{ inputs.ami_id }}
-        INPUT_SRC: ${{ inputs.source_region }}
-        INPUT_DEST: ${{ inputs.target_regions }}
+        INPUT_SRC: ${{ inputs.source_ami_region }}
+        INPUT_DEST: ${{ inputs.target_ami_regions }}
         INPUT_VER: ${{ inputs.matlab_version }}
         INPUT_REFARCH_TYPE: ${{ inputs.refarch_type }}
         INPUT_TEST: ${{ inputs.test_mode }}
@@ -57,7 +57,7 @@ runs:
           TEST_FLAG="--test-mode"
         fi
 
-        python ${{ github.action_path }}/distribute.py \
+        python ${{ github.action_path }}/publish.py \
           --ami-id "$INPUT_AMI" \
           --src-region "$INPUT_SRC" \
           --dest-regions "$INPUT_DEST" \

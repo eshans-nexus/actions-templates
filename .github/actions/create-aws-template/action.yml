@@ -10,8 +10,8 @@ inputs:
     description: 'Filename for the generated template'
     required: true
   artifact_name:
-    description: 'Name of the artifact to upload to GH'
-    required: true   
+    description: 'Name to assign the uploaded GitHub Actions artifact (an artifact label, not a filesystem path)'
+    required: true
   metatemplate_file_path:
     description: 'Path to the source JSON meta-template file'
     required: true
@@ -37,7 +37,12 @@ runs:
       run: |
         if ! command -v jq &> /dev/null; then
             echo "jq not found, installing..."
-            sudo apt-get update && sudo apt-get install -y jq
+            # Retry to ride out transient dpkg/apt lock contention on the runner.
+            for i in 1 2 3 4 5; do
+                sudo apt-get update && sudo apt-get install -y jq && break
+                echo "apt-get failed (attempt $i), retrying in 10s..."
+                sleep 10
+            done
         fi
         if ! command -v jq &> /dev/null; then
             echo "::error::Failed to install jq"

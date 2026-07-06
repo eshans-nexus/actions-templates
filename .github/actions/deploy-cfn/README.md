@@ -16,12 +16,12 @@ This action deploys an ephemeral CloudFormation stack for integration and smoke 
 
 | Input | Required | Description |
 | --- | --- | --- |
-| `template_file_path` | Yes | Path to the compiled CloudFormation template. |
+| `compiled_template_file_path` | Yes | Path to the already-compiled CloudFormation template. |
 | `refarch_type` | Yes | Target deployment architecture type matching a key in `refarch-type-mappings.json`. |
 | `region` | Yes | AWS region to deploy the stack into. |
 | `stack_name` | Yes | Unique identifier for the temporary stack. |
 | `vpc_id` / `subnet_id` | Yes | Network configuration for the deployment. |
-| `key_name` | Yes | Name of the pre-provisioned AWS Key Pair for access. |
+| `key_pair_name` | Yes | Name of the pre-provisioned AWS EC2 key pair for access. |
 
 **Outputs:**
 
@@ -34,13 +34,18 @@ This action deploys an ephemeral CloudFormation stack for integration and smoke 
   id: deploy
   uses: mathworks-ref-arch/iac-building-blocks/.github/actions/deploy-cfn@main
   with:
-    template_file_path: './R2025a-test-template.json'
+    compiled_template_file_path: './R2025a-test-template.json'
     refarch_type: 'matlab-linux'
     region: 'us-east-1'
-    stack_name: 'smoke-test-stack-12345'
+    stack_name: 'smoke-test-matlab-linux-R2025a-${{ github.run_id }}'
     vpc_id: 'vpc-0abcd1234'
     subnet_id: 'subnet-0abcd1234'
-    key_name: 'smoke-test-key-12345'
+    key_pair_name: 'smoke-test-key'
 
 ```
 
+----
+
+Copyright 2026 The MathWorks, Inc.
+
+----

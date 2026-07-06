@@ -18,7 +18,7 @@ This action acts as the template compiler for our CloudFormation infrastructure.
 | --- | --- | --- |
 | `region_map` | Yes | The JSON string containing region-to-AMI mappings. |
 | `output_filename` | Yes | The desired filename for the compiled template. |
-| `artifact_name` | Yes | The name under which to upload the GitHub artifact. |
+| `artifact_name` | Yes | The name to assign the uploaded GitHub Actions artifact (passed straight to `upload-artifact`'s `name`). This is an artifact label, not a filesystem path. |
 | `metatemplate_file_path` | Yes | Relative path to the source JSON meta-template. |
 | `lambda_injections` | No | JSON object mapping Lambda resource logical IDs to source files to embed. Defaults to `'{}'`. |
 
@@ -36,3 +36,8 @@ This action acts as the template compiler for our CloudFormation infrastructure.
 
 ```
 
+----
+
+Copyright 2026 The MathWorks, Inc.
+
+----
