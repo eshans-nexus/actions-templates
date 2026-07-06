@@ -8,7 +8,7 @@ on:
         description: |
           The MATLAB release version to build. Used to locate the
           per-version variable file and name artifacts/outputs.
-          Example: "R2025a", "R2024b"
+          Example: "R2026a", "R2025b"
         required: true
         type: string
       refarch_type:

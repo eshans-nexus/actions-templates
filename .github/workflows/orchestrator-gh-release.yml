@@ -8,7 +8,7 @@ on:
         description: |
           JSON array of MATLAB versions to include in this release.
           Typically passed from module-gh-get-versions output.
-          Example: '["R2025a","R2024b","R2024a"]'
+          Example: '["R2026a","R2025b","R2025a"]'
         required: true
         type: string
       s3_bucket_url:
