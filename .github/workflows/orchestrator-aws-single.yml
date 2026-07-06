@@ -91,7 +91,6 @@ jobs:
       matlab_version: ${{ inputs.matlab_version }}
       region: ${{ needs.build.outputs.region }}
       metatemplate_file_path: ${{ inputs.metatemplate_file_path }}
-      run_security_scan: ${{ vars.RUN_SECURITY_SCAN == 'true' }}
       lambda_injections: ${{ inputs.lambda_injections }}
     secrets: inherit
 
