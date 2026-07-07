@@ -62,6 +62,7 @@ jobs:
           matlab_version: ${{ inputs.matlab_version }}
           refarch_type: ${{ inputs.refarch_type }}
           test_mode: true
+          python_version: ${{ vars.PYTHON_VERSION || '3.11' }}
 
       - uses: actions/checkout@v5
 

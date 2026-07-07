@@ -91,6 +91,7 @@ jobs:
           region: ${{ inputs.region }}
           stack_name: ${{ env.STACK_NAME }}
           matlab_license_string: ${{ secrets.MATLAB_LICENSE_STRING }}
+          python_version: ${{ vars.PYTHON_VERSION || '3.11' }}
 
       - name: Cleanup
         if: always()
