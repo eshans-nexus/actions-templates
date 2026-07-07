@@ -57,7 +57,7 @@ jobs:
       - uses: actions/checkout@v5
 
       - name: Generate test template
-        uses: mathworks-ref-arch/iac-building-blocks/.github/actions/create-aws-template@main
+        uses: eshans-nexus/actions-templates/.github/actions/create-aws-template@reviewed
         with:
           region_map: ${{ env.TEST_REGION_MAP }}
           ami_id: ${{ inputs.ami_id }}
@@ -74,7 +74,7 @@ jobs:
 
       - name: Deploy Infrastructure
         id: deploy
-        uses: mathworks-ref-arch/iac-building-blocks/.github/actions/deploy-cfn@main
+        uses: eshans-nexus/actions-templates/.github/actions/deploy-cfn@reviewed
         with:
           compiled_template_file_path: ./${{ env.TEMPLATE_FILENAME }}
           refarch_type: ${{ inputs.refarch_type }}
@@ -86,7 +86,7 @@ jobs:
 
       - name: Run Smoke Tests
         id: smoke-test
-        uses: mathworks-ref-arch/iac-building-blocks/.github/actions/run-smoke-tests@main
+        uses: eshans-nexus/actions-templates/.github/actions/run-smoke-tests@reviewed
         with:
           region: ${{ inputs.region }}
           stack_name: ${{ env.STACK_NAME }}

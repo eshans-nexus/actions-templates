@@ -31,7 +31,8 @@ jobs:
       - name: Checkout iac-building-blocks scripts
         uses: actions/checkout@v5
         with:
-          repository: mathworks-ref-arch/iac-building-blocks
+          repository: eshans-nexus/actions-templates
+          ref: reviewed
           path: _iac-building-blocks
 
       - name: Calculate Versions
