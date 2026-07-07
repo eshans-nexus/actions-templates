@@ -12,6 +12,10 @@ inputs:
   matlab_license_string:
     description: 'MATLAB license string for product activation during tests'
     required: true
+  python_version:
+    description: 'Python version to set up for running the tests'
+    required: false
+    default: '3.11'
 
 runs:
   using: "composite"
@@ -31,7 +35,7 @@ runs:
     - name: Set up Python
       uses: actions/setup-python@v6
       with:
-        python-version: ${{ vars.PYTHON_VERSION || '3.11' }}
+        python-version: ${{ inputs.python_version }}
 
     - name: Install dependencies
       shell: bash
