@@ -80,7 +80,7 @@ jobs:
       - uses: actions/checkout@v5
 
       - name: Generate test template
-        uses: eshans-nexus/actions-templates/.github/actions/create-aws-template@reviewed
+        uses: eshans-nexus/actions-templates/.github/actions/create-aws-template@secrets-fix
         with:
           region_map: ${{ env.TEST_REGION_MAP }}
           ami_id: ${{ inputs.ami_id }}
@@ -97,7 +97,7 @@ jobs:
 
       - name: Deploy Infrastructure
         id: deploy
-        uses: eshans-nexus/actions-templates/.github/actions/deploy-cfn@reviewed
+        uses: eshans-nexus/actions-templates/.github/actions/deploy-cfn@secrets-fix
         with:
           compiled_template_file_path: ./${{ env.TEMPLATE_FILENAME }}
           refarch_type: ${{ inputs.refarch_type }}
@@ -109,7 +109,7 @@ jobs:
 
       - name: Run Smoke Tests
         id: smoke-test
-        uses: eshans-nexus/actions-templates/.github/actions/run-smoke-tests@reviewed
+        uses: eshans-nexus/actions-templates/.github/actions/run-smoke-tests@secrets-fix
         with:
           region: ${{ inputs.region }}
           stack_name: ${{ env.STACK_NAME }}
