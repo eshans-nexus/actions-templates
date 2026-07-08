@@ -19,6 +19,13 @@ on:
       region:
         description: "The region where the AMI was built"
         value: ${{ jobs.build.outputs.region }}
+    secrets:
+      AWS_OIDC_ROLE:
+        description: |
+          ARN of the IAM role assumed via OIDC for the Packer build.
+          Must be passed explicitly by the caller; 'secrets: inherit'
+          does not propagate across GitHub org boundaries.
+        required: false
 env:
     PACKER_VERSION: ${{ vars.PACKER_VERSION || '1.15.4' }}
     PACKER_MANIFEST_FILENAME: "${{ inputs.matlab_version }}-manifest.json"
@@ -38,6 +45,14 @@ jobs:
       region: ${{ steps.export.outputs.region }}
     steps:
       - uses: actions/checkout@v5
+
+      - name: Validate AWS Credentials Secret
+        if: inputs.skip_build == false
+        run: |
+          if [ -z "${{ secrets.AWS_OIDC_ROLE }}" ]; then
+            echo "::error::secrets.AWS_OIDC_ROLE is empty. Pass it explicitly to this workflow. Note that 'secrets: inherit' does not propagate across GitHub organizations."
+            exit 1
+          fi
 
       - name: Configure AWS Credentials
         if: inputs.skip_build == false

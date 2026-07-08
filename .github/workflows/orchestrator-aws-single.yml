@@ -71,6 +71,22 @@ on:
         required: false
         type: string
         default: '{}'
+    secrets:
+      AWS_OIDC_ROLE:
+        description: |
+          ARN of the IAM role assumed via OIDC for build and smoke-test.
+          Must be passed explicitly by the caller; 'secrets: inherit'
+          does not propagate across GitHub org boundaries.
+        required: false
+      TEST_VPC_ID:
+        description: 'VPC ID the smoke-test CloudFormation stack is deployed into.'
+        required: false
+      TEST_SUBNET_ID:
+        description: 'Subnet ID the smoke-test CloudFormation stack is deployed into.'
+        required: false
+      MATLAB_LICENSE_STRING:
+        description: 'MATLAB license string used by the smoke tests.'
+        required: false
 
 jobs:
   build:
@@ -79,7 +95,8 @@ jobs:
       matlab_version: ${{ inputs.matlab_version }}
       skip_build: ${{ inputs.skip_build }}
       packer_dir: ${{ inputs.packer_dir }}
-    secrets: inherit
+    secrets:
+      AWS_OIDC_ROLE: ${{ secrets.AWS_OIDC_ROLE }}
 
   smoke-test:
     if: ${{ inputs.skip_test == false }}
@@ -92,7 +109,11 @@ jobs:
       region: ${{ needs.build.outputs.region }}
       metatemplate_file_path: ${{ inputs.metatemplate_file_path }}
       lambda_injections: ${{ inputs.lambda_injections }}
-    secrets: inherit
+    secrets:
+      AWS_OIDC_ROLE: ${{ secrets.AWS_OIDC_ROLE }}
+      TEST_VPC_ID: ${{ secrets.TEST_VPC_ID }}
+      TEST_SUBNET_ID: ${{ secrets.TEST_SUBNET_ID }}
+      MATLAB_LICENSE_STRING: ${{ secrets.MATLAB_LICENSE_STRING }}
 
   release:
     if: ${{ inputs.is_supplementary_build == false }}
@@ -106,4 +127,3 @@ jobs:
       target_regions: ${{ vars.TARGET_REGIONS }}
       metatemplate_file_path: ${{ inputs.metatemplate_file_path }}
       lambda_injections: ${{ inputs.lambda_injections }}
-    secrets: inherit

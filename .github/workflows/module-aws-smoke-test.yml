@@ -27,6 +27,22 @@ on:
         required: false
         type: string
         default: '{}'
+    secrets:
+      AWS_OIDC_ROLE:
+        description: |
+          ARN of the IAM role assumed via OIDC to deploy the test stack.
+          Must be passed explicitly by the caller; 'secrets: inherit'
+          does not propagate across GitHub org boundaries.
+        required: false
+      TEST_VPC_ID:
+        description: 'VPC ID the test CloudFormation stack is deployed into.'
+        required: false
+      TEST_SUBNET_ID:
+        description: 'Subnet ID the test CloudFormation stack is deployed into.'
+        required: false
+      MATLAB_LICENSE_STRING:
+        description: 'MATLAB license string used by the smoke tests.'
+        required: false
 
 env:
   METATEMPLATE_PATH: "./${{ inputs.metatemplate_file_path }}"
@@ -51,6 +67,13 @@ jobs:
           fi
           if [ -z "${{ inputs.ami_id }}" ]; then
             echo "::error::AMI ID input is empty. The build step may have failed to produce outputs."
+            exit 1
+          fi
+
+      - name: Validate AWS Credentials Secret
+        run: |
+          if [ -z "${{ secrets.AWS_OIDC_ROLE }}" ]; then
+            echo "::error::secrets.AWS_OIDC_ROLE is empty. Pass it explicitly to this workflow. Note that 'secrets: inherit' does not propagate across GitHub organizations."
             exit 1
           fi
 

@@ -89,7 +89,6 @@ jobs:
       dual_repo_url: ${{ inputs.dual_repo_url }}
       artifacts_path: ${{ inputs.artifacts_path }}
       release_template_name_pattern: ${{ inputs.release_template_name_pattern }}
-    secrets: inherit
 
   publish-release-artifacts:
     needs: [commit-release-files]
@@ -102,4 +101,3 @@ jobs:
       release_title: ${{ inputs.release_title }}
       prerelease: false
       generate_attestations: ${{ inputs.generate_attestations }}
-    secrets: inherit
