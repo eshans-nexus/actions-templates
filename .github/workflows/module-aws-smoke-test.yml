@@ -97,6 +97,7 @@ jobs:
 
       - name: Deploy Infrastructure
         id: deploy
+        timeout-minutes: 20
         uses: eshans-nexus/actions-templates/.github/actions/deploy-cfn@secrets-fix
         with:
           compiled_template_file_path: ./${{ env.TEMPLATE_FILENAME }}
@@ -109,6 +110,7 @@ jobs:
 
       - name: Run Smoke Tests
         id: smoke-test
+        timeout-minutes: 10
         uses: eshans-nexus/actions-templates/.github/actions/run-smoke-tests@secrets-fix
         with:
           region: ${{ inputs.region }}

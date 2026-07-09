@@ -11,7 +11,7 @@ on:
         required: true
         type: string
       matlab_version:
-        required: false
+        required: true
         type: string
       source_region:
         required: true

@@ -37,6 +37,7 @@ jobs:
   build:
     name: "${{ inputs.matlab_version }}: Packer Build"
     runs-on: ubuntu-latest
+    timeout-minutes: 120
     permissions:
       id-token: write
       contents: read
@@ -64,7 +65,7 @@ jobs:
 
       - name: Setup Packer
         if: inputs.skip_build == false
-        uses: hashicorp/setup-packer@main
+        uses: hashicorp/setup-packer@v3
         with:
           version: ${{ env.PACKER_VERSION }}
 
@@ -82,7 +83,17 @@ jobs:
         if: inputs.skip_build == true
         working-directory: ${{ inputs.packer_dir }}
         run: |
-          sudo apt-get install -y jq
+          # jq is normally pre-installed on ubuntu-latest, but it is not a
+          # guaranteed part of the runner image, so install it if missing.
+          # Retry to ride out transient dpkg/apt lock contention.
+          if ! command -v jq &> /dev/null; then
+            echo "jq not found, installing..."
+            for i in 1 2 3 4 5; do
+              sudo apt-get update && sudo apt-get install -y jq && break
+              echo "apt-get failed (attempt $i), retrying in 10s..."
+              sleep 10
+            done
+          fi
           if ! command -v jq &> /dev/null; then
             echo "::error::Failed to install jq. Cannot parse release template."
             exit 1
@@ -115,7 +126,21 @@ jobs:
         id: export
         working-directory: ${{ inputs.packer_dir }}
         run: |
-          sudo apt-get install -y jq
+          # jq is normally pre-installed on ubuntu-latest, but it is not a
+          # guaranteed part of the runner image, so install it if missing.
+          if ! command -v jq &> /dev/null; then
+            echo "jq not found, installing..."
+            for i in 1 2 3 4 5; do
+              sudo apt-get update && sudo apt-get install -y jq && break
+              echo "apt-get failed (attempt $i), retrying in 10s..."
+              sleep 10
+            done
+          fi
+          if ! command -v jq &> /dev/null; then
+            echo "::error::Failed to install jq. Cannot parse Packer manifest."
+            exit 1
+          fi
+
           FULL_ID=$(jq -r '.builds[-1].artifact_id' ${{ env.PACKER_MANIFEST_FILENAME }})
           echo "ami_id=$(echo $FULL_ID | cut -d':' -f2)" >> $GITHUB_OUTPUT
           echo "region=$(echo $FULL_ID | cut -d':' -f1)" >> $GITHUB_OUTPUT
